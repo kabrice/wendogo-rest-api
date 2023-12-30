@@ -4,10 +4,11 @@ from flask import  jsonify
 import sys
 import re
 
-client = Client()
+
 class Helper:
      @staticmethod
      def send_whatsapp_verification_code(phone):
+        client = Client()
         verification = client.verify.v2.services(
             os.environ['TWILIO_VERIFY_SERVICE']).verifications.create(
                 to=phone, channel='whatsapp')
@@ -18,6 +19,7 @@ class Helper:
      @staticmethod
      def check_whatsapp_verification_code(phone, code):
         try:
+            client = Client()
             verification_check = client.verify.v2.services(
                 os.environ['TWILIO_VERIFY_SERVICE']).verification_checks.create(
                     to=phone, code=code

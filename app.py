@@ -5,16 +5,18 @@ from flaskext.mysql import MySQL
 from flask_cors import CORS
 from datetime import datetime
 import sys
-from helper import Helper
+from app.helper import Helper
 from dataclasses import dataclass
 from sqlalchemy import text
+from urllib.parse import quote
+from sqlalchemy.pool import QueuePool
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:3000", "http://localhost:3000"])
+CORS(app, origins=["https://wendogo.com", "https://wendogo.com"])
 #app.config['SECRET_KEY'] = 'top-secret!'
 
 
-db = SQLAlchemy()
+db = SQLAlchemy(engine_options={"pool_size": 10, 'pool_recycle': 280, "poolclass":QueuePool, "pool_pre_ping":True})
 #ma = Marshmallow()
 
 mysql =MySQL()
@@ -115,7 +117,8 @@ class Log(db.Model):
         self.request_input = request_input
         self.message = message
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:@127.0.0.1/wendogo'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://u963469710_wendogo:%s@89.117.169.204/u963469710_wendogo' % quote('Support001@')
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:@127.0.0.1/wendogo'
 
 db.init_app(app)
 with app.app_context():
@@ -148,7 +151,7 @@ def get_user():
 def user_byphone(phone):
     user = User.query.filter_by(phone = phone).first()
     #data = user_schema.dump(user)
-    return jsonify(user)
+    return jsonify(user.as_dict())
 
 @app.route('/user/delete/<id>', methods=['POST'])
 def delete_user(id):
@@ -289,4 +292,4 @@ def get_countries(country_iso2):
         Helper.logError(e, db, Log, request) 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")
