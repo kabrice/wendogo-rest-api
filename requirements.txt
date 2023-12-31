@@ -5,8 +5,10 @@ async-timeout==4.0.3
 attrs==23.1.0
 blinker==1.6.3
 certifi==2023.7.22
+cffi==1.16.0
 charset-normalizer==3.3.1
 click==8.1.7
+cryptography==41.0.7
 distlib==0.3.7
 filelock==3.12.4
 Flask==2.3.0
@@ -15,6 +17,7 @@ flask-marshmallow==0.14.0
 Flask-MySQL==1.5.2
 Flask-MySQLdb==2.0.0
 Flask-SQLAlchemy==3.1.1
+flask-talisman==1.1.0
 frozenlist==1.4.0
 idna==3.4
 itsdangerous==2.1.2
@@ -25,8 +28,10 @@ multidict==6.0.4
 mysqlclient==2.2.0
 packaging==23.2
 platformdirs==3.11.0
+pycparser==2.21
 PyJWT==2.8.0
 PyMySQL==1.1.0
+pyOpenSSL==23.3.0
 python-dotenv==1.0.0
 requests==2.31.0
 six==1.16.0
