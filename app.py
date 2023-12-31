@@ -10,6 +10,10 @@ from dataclasses import dataclass
 from sqlalchemy import text
 from urllib.parse import quote
 from sqlalchemy.pool import QueuePool
+import ssl
+
+ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+ctx.load_cert_chain('certificate.pem', 'privateKey.pem')
 
 app = Flask(__name__)
 CORS(app, origins=["https://wendogo.com", "https://wendogo.com"])
@@ -292,4 +296,4 @@ def get_countries(country_iso2):
         Helper.logError(e, db, Log, request) 
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0", ssl_context='adhoc')
+    app.run(debug=True, host="0.0.0.0", ssl_context=ctx)
