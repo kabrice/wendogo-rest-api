@@ -16,7 +16,7 @@ ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
 ctx.load_cert_chain('certificate.pem', 'privateKey.pem')
 
 app = Flask(__name__)
-CORS(app, origins=["https://wendogo.com", "https://wendogo.com"])
+CORS(app)
 #app.config['SECRET_KEY'] = 'top-secret!'
 
 
