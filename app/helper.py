@@ -27,7 +27,8 @@ class Helper:
             if verification_check.status != 'pending':
                 return True
             return False
-        except:
+        except Exception as e:
+            print('error'+ e)
             return False
         
      @staticmethod    
