@@ -29,43 +29,6 @@ mysql =MySQL()
 class User(db.Model):
 
     __tablename__ = 'user'
-
-    id = db.Column(db.Integer, primary_key=True)
-    city = db.Column(db.String(35), nullable=False)#2
-    description = db.Column(db.String(2500), nullable=False)#2
-    email = db.Column(db.String(50), nullable=False)#1
-    firstname = db.Column(db.String(46), nullable=False)#1
-    lastname = db.Column(db.String(46), nullable=False)#1
-    salutation = db.Column(db.String(15), nullable=False)#1
-    created_date = db.Column(db.DateTime, default=datetime.utcnow())
-    country = db.Column(db.String(4), nullable=False)
-    last_modified_date = db.Column(db.DateTime)
-    phone = db.Column(db.String(25), nullable=False)
-    has_whatsapp = db.Column(db.Boolean, unique=False, default=False, nullable=False)
-    whatsapp_verification_attempt = db.Column(db.Integer, default=0)
-    occupation = db.Column(db.String(20), nullable=False)#2
-    subscription_step =  db.Column(db.String(255), nullable=False)
-    
-
-    def __init__(self, firstname, lastname, salutation, city, email, phone, occupation, description, country):
-        self.firstname = firstname
-        self.lastname = lastname
-        self.salutation = salutation
-        self.city = city
-        self.email = email
-        self.phone = phone
-        self.occupation = occupation
-        self.description = description
-        self.country = country
-
-    def as_dict(self):
-        excluded_fields = ['id', 'created_date', 'last_modified_date', 'whatsapp_verification_attempt']
-        return {field.name:getattr(self, field.name) for field in self.__table__.c if field.name not in excluded_fields}
-
-@dataclass
-class User(db.Model):
-
-    __tablename__ = 'user'
     __table_args__ = {'extend_existing': True} 
 
     id = db.Column(db.Integer, primary_key=True)
@@ -74,6 +37,7 @@ class User(db.Model):
     email = db.Column(db.String(50), nullable=False)#1
     firstname = db.Column(db.String(46), nullable=False)#1
     lastname = db.Column(db.String(46), nullable=False)#1
+    birthdate = db.Column(db.Date)#1
     salutation = db.Column(db.String(15), nullable=False)#1
     created_date = db.Column(db.DateTime, default=datetime.utcnow())
     country = db.Column(db.String(4), nullable=False)
@@ -240,9 +204,10 @@ def update_credentials():
         _json = request.get_json()
         phone = _json.get('phone')
         user = User.query.filter_by(phone = phone).first()
-        if _json.get('firstname') and _json.get('lastname') and _json.get('salutation') and _json.get('email'):
+        if _json.get('firstname') and _json.get('lastname') and _json.get('salutation') and _json.get('email') and _json.get('birthdate'):
             user.firstname = _json.get('firstname').title()
             user.lastname = _json.get('lastname').title()
+            user.birthdate = datetime.strptime( _json.get('birthdate'), '%Y-%m-%d')
             user.salutation = _json.get('salutation')
             user.email = _json.get('email') if not _json.get('doesntHaveEmail') else ''
             user.subscription_step = '/credentialend'  #Step 3 => Go to  Credential 2 Page
