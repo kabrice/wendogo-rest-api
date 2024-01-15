@@ -204,7 +204,7 @@ def update_credentials():
         _json = request.get_json()
         phone = _json.get('phone')
         user = User.query.filter_by(phone = phone).first()
-        if _json.get('firstname') and _json.get('lastname') and _json.get('salutation') and _json.get('doesntHaveEmail') and _json.get('birthdate'):
+        if _json.get('firstname') and _json.get('lastname') and _json.get('salutation') and _json.get('birthdate'):
             user.firstname = _json.get('firstname').title()
             user.lastname = _json.get('lastname').title()
             user.birthdate = datetime.strptime( _json.get('birthdate'), '%Y-%m-%d')
