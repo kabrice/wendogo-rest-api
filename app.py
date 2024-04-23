@@ -5,12 +5,13 @@ from flaskext.mysql import MySQL
 from flask_cors import CORS
 from datetime import datetime
 import sys
-from app.helper import Helper
+from common.helper import Helper
 from dataclasses import dataclass
 from sqlalchemy import text
 from urllib.parse import quote
 from sqlalchemy.pool import QueuePool
 import ssl
+from flask_migrate import Migrate
 
 ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
 ctx.load_cert_chain('certificate.pem', 'privateKey.pem')
@@ -19,8 +20,9 @@ app = Flask(__name__)
 CORS(app)
 #app.config['SECRET_KEY'] = 'top-secret!'
 
+from common.models import db
 
-db = SQLAlchemy(engine_options={"pool_size": 10, 'pool_recycle': 280, "poolclass":QueuePool, "pool_pre_ping":True})
+#db = SQLAlchemy(engine_options={"pool_size": 10, 'pool_recycle': 280, "poolclass":QueuePool, "pool_pre_ping":True})
 #ma = Marshmallow()
 
 mysql =MySQL()
@@ -32,6 +34,9 @@ class User(db.Model):
     __table_args__ = {'extend_existing': True} 
 
     id = db.Column(db.Integer, primary_key=True)
+    reference = db.Column(db.String(255), nullable=True)
+    street = db.Column(db.String(255), nullable=False)
+    postal_code = db.Column(db.String(10), nullable=False) 
     city = db.Column(db.String(35), nullable=False)#2
     description = db.Column(db.String(2500), nullable=False)#2
     email = db.Column(db.String(50), nullable=False)#1
@@ -39,14 +44,22 @@ class User(db.Model):
     lastname = db.Column(db.String(46), nullable=False)#1
     birthdate = db.Column(db.Date)#1
     salutation = db.Column(db.String(15), nullable=False)#1
-    created_date = db.Column(db.DateTime, default=datetime.utcnow())
+    created_at = db.Column(db.DateTime, default=datetime.utcnow())
     country = db.Column(db.String(4), nullable=False)
-    last_modified_date = db.Column(db.DateTime)
+    updated_at = db.Column(db.DateTime)
     phone = db.Column(db.String(25), nullable=False)
     has_whatsapp = db.Column(db.Boolean, unique=False, default=False, nullable=False)
     whatsapp_verification_attempt = db.Column(db.Integer, default=0)
     occupation = db.Column(db.String(20), nullable=False)#2
     subscription_step = db.Column(db.String(255), nullable=False)
+    nationality_id = db.Column(db.String(8), db.ForeignKey('nationality.id'), nullable=True)
+    passport_id = db.Column(db.Integer, db.ForeignKey('passport.id'), nullable=True)
+    is_disabled = db.Column(db.Boolean, unique=False, default=False, nullable=False)
+    lead_status_id = db.Column(db.String(8), db.ForeignKey('lead_status.id'), nullable=True)
+    password = db.Column(db.String(255), nullable=False)
+    parent_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Parent user (Parent user can fill the form for his child)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
     def __init__(self, firstname, lastname, salutation, city, email, phone, occupation, description, country):
         self.firstname = firstname
@@ -60,7 +73,7 @@ class User(db.Model):
         self.country = country
 
     def as_dict(self):
-        excluded_fields = ['id', 'created_date', 'last_modified_date', 'whatsapp_verification_attempt']
+        excluded_fields = ['id', 'created_at', 'updated_at', 'whatsapp_verification_attempt']
         return {field.name:getattr(self, field.name) for field in self.__table__.c if field.name not in excluded_fields}
             
 @listens_for(User, 'after_update')
@@ -69,7 +82,7 @@ def update_user_log(mapper, connection, target):
     connection.execute(
         user_table.update().
         where(user_table.c.id==target.id).
-        values(last_modified_date=datetime.utcnow())
+        values(updated_at=datetime.utcnow())
     )
 
 # user_schema = UserSchema()
@@ -77,9 +90,13 @@ def update_user_log(mapper, connection, target):
 @dataclass
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    reference = db.Column(db.String(255), nullable=True)
     request_input = db.Column(db.String(255))
     message = db.Column(db.String(2500), nullable=False)
-    created_date = db.Column(db.DateTime, default=datetime.utcnow())
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __init__(self, request_input, message):
         self.request_input = request_input
@@ -90,6 +107,10 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://u963469710_wendogo:%s@89.117.16
 
 db.init_app(app)
 with app.app_context():
+    from common.models import *
+    migrate = Migrate(app, db)
+    print('db created')
+    
     db.create_all()
 
 @app.route('/user/add', methods=['POST'])
@@ -179,6 +200,7 @@ def verify_whatsapp_and_add_user():
             return jsonify({"user": userMaybe.as_dict(), "sent": is_code_has_been_sent, "success": True})
         
     except Exception as e:
+       print('========error', e)
        Helper.logError(e, db, Log, request)    
 
 @app.route('/user/verificationCheck', methods=['POST'])
@@ -204,6 +226,7 @@ def update_credentials():
         _json = request.get_json()
         phone = _json.get('phone')
         user = User.query.filter_by(phone = phone).first()
+        print('user', _json.get('birthdate'))
         if _json.get('firstname') and _json.get('lastname') and _json.get('salutation') and _json.get('birthdate'):
             user.firstname = _json.get('firstname').title()
             user.lastname = _json.get('lastname').title()
