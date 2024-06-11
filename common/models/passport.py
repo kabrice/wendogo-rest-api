@@ -18,8 +18,8 @@ class Passport(db.Model):
     comments = db.Column(db.String(1024), nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime)
-    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
     def as_dict(self):
         excluded_fields = ['id', 'created_at', 'updated_at']

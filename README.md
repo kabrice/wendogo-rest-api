@@ -1,1 +1,0 @@
-Wendogo REST API

@@ -17,8 +17,8 @@ class LeadLevelRelation(db.Model):
     is_current_year = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime)
-    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
     def as_dict(self):
         excluded_fields = ['id', 'created_at', 'updated_at']

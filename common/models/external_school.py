@@ -16,8 +16,8 @@ class ExternalSchool(db.Model):
     updated_at = db.Column(db.DateTime)
     educational_language_id = db.Column(db.String(8), db.ForeignKey('educational_language.id'), nullable=False)
     comments = db.Column(db.String(1024), nullable=True)
-    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
     def as_dict(self):
         excluded_fields = ['id', 'created_at', 'updated_at']

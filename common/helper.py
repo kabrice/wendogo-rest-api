@@ -18,6 +18,7 @@ class Helper:
         
      @staticmethod
      def check_whatsapp_verification_code(phone, code):
+        
         try:
             client = Client()
             verification_check = client.verify.v2.services(
