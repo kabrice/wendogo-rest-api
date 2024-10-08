@@ -14,11 +14,11 @@ class ExternalSchool(db.Model):
     city_id = db.Column(db.Integer, db.ForeignKey('cities.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime)
-    educational_language_id = db.Column(db.String(8), db.ForeignKey('educational_language.id'), nullable=False)
+    educational_language_id = db.Column(db.String(8), db.ForeignKey('spoken_language.id'), nullable=False)
     comments = db.Column(db.String(1024), nullable=True)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
     def as_dict(self):
-        excluded_fields = ['id', 'created_at', 'updated_at']
+        excluded_fields = ['created_at', 'updated_at', 'created_by', 'updated_by']
         return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name not in excluded_fields}    

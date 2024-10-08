@@ -16,5 +16,5 @@ class Account(db.Model):
     updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
     def as_dict(self):
-        excluded_fields = ['id', 'created_at', 'updated_at']
+        excluded_fields = ['created_at', 'updated_at', 'created_by', 'updated_by']
         return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name not in excluded_fields}    

@@ -7,7 +7,7 @@ def init_routes(app):
 
     @app.route('/countries/<string:default_country_iso2>', methods=['GET'])
     def get_countries_with_default_value(default_country_iso2): 
-        country_res = db.session.execute(text("SELECT translations, iso2, id FROM countries"))
+        country_res = db.session.execute(text("SELECT translations, iso2, id, most_popular_spoken_language_id FROM countries"))
         data_country = []
 
         for row in country_res:
@@ -16,7 +16,7 @@ def init_routes(app):
             json_object = json.loads(json_object)
             #country_local = json_object['fr']
             if "fr" in json_object:
-                data_country.append({'id':row[2], 'name': str(json_object["fr"]), 'iso2':row[1], 'default':row[1] == default_country_iso2})
+                data_country.append({'id':row[2], 'name': str(json_object["fr"]), 'iso2':row[1],'most_popular_spoken_language_id': row[3], 'default':row[1] == default_country_iso2})
 
         return data_country
     

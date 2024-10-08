@@ -10,17 +10,17 @@ class Passport(db.Model):
     __table_args__ = {'extend_existing': True} 
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255), nullable=False)
-    delivery_date = db.Column(db.DateTime, nullable=False)
-    delivery_place = db.Column(db.String(255), nullable=False)
-    valid_until = db.Column(db.DateTime, nullable=False)
-    passport_number = db.Column(db.String(255), nullable=False)
-    comments = db.Column(db.String(1024), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    delivery_date = db.Column(db.Date, nullable=False)
+    #delivery_place = db.Column(db.String(255), nullable=False)
+    valid_until = db.Column(db.Date, nullable=False)
+    #passport_number = db.Column(db.String(255), nullable=False)
+    #comments = db.Column(db.String(1024), nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
     def as_dict(self):
-        excluded_fields = ['id', 'created_at', 'updated_at']
+        excluded_fields = ['created_at', 'updated_at', 'created_by', 'updated_by']
         return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name not in excluded_fields}    

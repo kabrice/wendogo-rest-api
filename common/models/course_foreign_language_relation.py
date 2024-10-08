@@ -10,7 +10,6 @@ class CourseForeignLanguageRelation(db.Model):
     __table_args__ = {'extend_existing': True} 
 
     id = db.Column(db.String(8), primary_key=True)
-    external_id = db.Column(db.Integer, autoincrement=True)
     course_id = db.Column(db.String(8), db.ForeignKey('course.id'), nullable=False)
     foreign_language_id = db.Column(db.String(8), db.ForeignKey('foreign_language.id'), nullable=False)
     ranking = db.Column(db.Integer, nullable=False)
@@ -21,5 +20,5 @@ class CourseForeignLanguageRelation(db.Model):
     updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
     def as_dict(self):
-        excluded_fields = ['id', 'created_at', 'updated_at']
+        excluded_fields = ['created_at', 'updated_at', 'created_by', 'updated_by']
         return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name not in excluded_fields}

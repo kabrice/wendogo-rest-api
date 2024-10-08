@@ -4,30 +4,46 @@ from . import db
 
 @dataclass
 class ReportCard(db.Model):
+    """Report card header of the student for a specific school year"""
     __tablename__ = 'report_card'
     __table_args__ = {'extend_existing': True} 
 
     id = db.Column(db.Integer, primary_key=True)
-    lead_level_relation_id = db.Column(db.Integer, db.ForeignKey('lead_level_relation.id'), nullable=False)
-    external_school_id = db.Column(db.Integer, db.ForeignKey('external_school.id'), nullable=False) # soit external_school_id soit school_id, jamais les 2 à la fois
-    school_id = db.Column(db.String(8), db.ForeignKey('school.id'), nullable=False)
-    mark_system_id = db.Column(db.String(8), db.ForeignKey('mark_system.id'), nullable=False)
-    academic_year_organization_id = db.Column(db.String(8), db.ForeignKey('academic_year_organization.id'), nullable=False)
-    subject_id = db.Column(db.String(8), db.ForeignKey('subject.id'), nullable=False) # soit subject_id soit external_subject_id, jamais les 2 à la fois
-    external_subject_id = db.Column(db.Integer, db.ForeignKey('external_subject.id'), nullable=False)
-    subject_weight_system_id = db.Column(db.String(8), db.ForeignKey('subject_weight_system.id'), nullable=False)
-    mark = db.Column(db.Float, nullable=False)
-    mark_converted = db.Column(db.Float, nullable=False) # mark converted to the mark_system of the lead target country or school
-    distinction = db.Column(db.String(255), nullable=True) # ex: "Distinction", "Mention TB", "Mention B", "Mention AB", "Passable", "Fail"
-    professional_experience = db.Column(db.Boolean, default=False) # True if the lead has a professional experience in this subject
-    can_justify_professional_experience = db.Column(db.Boolean, default=False) # True if the lead can justify his professional experience in this subject through a certificate (attestation de stage) 
-    number_of_students = db.Column(db.Integer, nullable=False)
-    comments = db.Column(db.String(1024), nullable=True)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    school_year_id = db.Column(db.String(8), db.ForeignKey('school_year.id'), nullable=False)
+    bac_id = db.Column(db.String(8), db.ForeignKey('bac.id'), nullable=False)
+    #level = db.Column(db.Integer, nullable=False) # 3  = Bulletin de note le plus récent, 2 = Bulletin de note de l'année n-2, 1 = Bulletin de note de l'année n-1
+    lead_id = db.Column(db.Integer, db.ForeignKey('lead.id'), nullable=False)
+    country_id = db.Column(db.Integer, db.ForeignKey('countries.id'), nullable=False)
+    city_id = db.Column(db.Integer, db.ForeignKey('cities.id'), nullable=False)
+    external_school_id = db.Column(db.Integer, db.ForeignKey('external_school.id'), nullable=False) # school name entered by the user different from the built-in school (school object)
+    spoken_language_id = db.Column(db.String(8), db.ForeignKey('spoken_language.id'), nullable=False)
+    academic_year_organization_id = db.Column(db.String(8), db.ForeignKey('academic_year_organization.id'), nullable=False) # ayo00001 => Trimestre, ayo00002 => Semestre
+    mark_system_id = db.Column(db.String(8), db.ForeignKey('mark_system.id'), nullable=False) # crs0001 => Sur 6, crs0002 => Sur 10, crs0003 => Sur 20, crs0004 => Sur 100, crs0005 => Lettres (A+, A, B-, etc.)
+    subject_weight_system_id = db.Column(db.String(8), db.ForeignKey('subject_weight_system.id'), nullable=False)  # sws001 => Coefficient, sws002 => Crédit
+    school_term1_average_mark_in_20 = db.Column(db.Float, nullable=False) # Moyenne générale sur 20 du school_term 1 (semestre 1 ou trimestre 1)
+    school_term2_average_mark_in_20 = db.Column(db.Float, nullable=False) # Moyenne générale sur 20 du school_term 2 (semestre 2 ou trimestre 2)
+    school_term3_average_mark_in_20 = db.Column(db.Float, nullable=False) # Moyenne générale sur 20 du school_term 3 (trimestre 3)
+    baccalaureat_average_mark_in_20 = db.Column(db.Float, nullable=False) # Moyenne générale sur 20 du baccalaureat
+    average_mark_in_20 = db.Column(db.Float, nullable=False) # Moyenne générale sur 20 de l'année scolaire
+    school_term1_overall_rank = db.Column(db.Integer, nullable=False) # lead overall rank for the school_term 1 (semestre 1 ou trimestre 1)
+    school_term2_overall_rank = db.Column(db.Integer, nullable=False) # lead overall rank for the school_term 2 (semestre 2 ou trimestre 2)
+    school_term3_overall_rank = db.Column(db.Integer, nullable=False) # lead overall rank for the school_term 3 (trimestre 3)
+    overall_rank = db.Column(db.Integer, nullable=False) # lead overall rank in the class based on then rank of the student in each subject
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp()) 
     updated_at = db.Column(db.DateTime)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
+    school_year = db.relationship('SchoolYear', backref='report_card')
+    bac = db.relationship('Bac', backref='report_card')
+    lead = db.relationship('Lead', backref='report_card')
+    country = db.relationship('Countries', backref='report_card')
+    city = db.relationship('Cities', backref='report_card')
+    external_school = db.relationship('ExternalSchool', backref='report_card')
+    spoken_language = db.relationship('SpokenLanguage', backref='report_card')
+    academic_year_organization = db.relationship('AcademicYearOrganization', backref='report_card')
+    mark_system = db.relationship('MarkSystem', backref='report_card')
+
     def as_dict(self):
-        excluded_fields = ['id', 'created_at', 'updated_at']
+        excluded_fields = ['created_at', 'updated_at', 'created_by', 'updated_by']
         return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name not in excluded_fields}    
