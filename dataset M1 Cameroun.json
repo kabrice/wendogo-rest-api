@@ -1,0 +1,866 @@
+{
+  "lastname": "Nguefack",
+  "firstname": "Emmanuelle",
+  "phone": "5EgB5DLZ",
+  "email": "emmanuelle.nguefack@example.com",
+  "blankYearRepetitionNumber": 0,
+  "canJustifyOtherLanguage": false,
+  "canProveWorkExperience": true,
+  "classRepetitionNumber": 0,
+  "hasWonAward": false,
+  "hasWorkExperience": true,
+  "disable": false,
+  "isFrancophone": true,
+  "isFrancophoneCountry": true,
+  "lead_status_id": "lst00002",
+  "hasPassport": true,
+  "isResult1Available": true,
+  "isResult2Available": true,
+  "phoneNumberFormatted": {
+    "name": "+237673554321",
+    "validated": true
+  },
+  "selectedSchoolYear1": {
+    "id": "schy0070",
+    "name": "2020",
+    "validated": true
+},
+"selectedSchoolYear2": {
+    "id": "schy00071",
+    "name": "2022",
+    "validated": true
+}, 
+  "passportDetails": {
+    "endDate": "01/01/2030",
+    "startDate": "01/01/2020",
+    "validated": true
+  },
+  "visaTypeSelectedId": "vis00002",
+  "schoolLevelSelected": "Université",
+  "selectedCountry": {
+    "default": false,
+    "id": 38,
+    "iso2": "CM",
+    "most_popular_spoken_language_id": "spl00001",
+    "name": "Cameroun",
+    "validated": true
+  },
+  "birthDate": {
+    "date": "10/12/2000",
+    "validated": true
+  },
+  "nationality": {
+    "id": "nat038",
+    "name": "Camerounaise",
+    "validated": true
+  },
+  "country": "CM",
+  "address": {
+    "name": "Bonamoussadi, Douala",
+    "validated": true
+  },
+  "addressName": {
+    "name": "Bonamoussadi, Douala",
+    "validated": true
+  },
+  "alreadyTraveledToFrance": false,
+  "salutation": "Madame", 
+  "universityLevelSelected": {"id": "bac00007", "name": "BAC+4", "validated": true},
+  "hsLevelSelected": "deg00010",
+  "degreeSelected": {
+    "id": "deg00009",
+    "name": "Master",
+    "validated": true
+  },
+  "degreeExactNameValue": "Master en Gestion des Ressources Humaines",
+  "selectedSchoolYear3": {
+    "id": "schy0072",
+    "name": "2023",
+    "validated": true
+  },
+  "programDomainObj": {
+    "id": "lvv0040",
+    "name": "Sciences humaines et socials"
+  },
+  "mainSubjects": [
+    {
+      "id": "suj0229",
+      "name": "Gestion des Ressources Humaines",
+      "priority": 1
+    },
+    {
+      "id": "suj0176",
+      "name": "Droit du Travail",
+      "priority": 2
+    },
+    {
+      "id": "suj0147",
+      "name": "Ressources humaines",
+      "priority": 3
+    }
+  ],
+  "selectedFrenchLevel": 100,
+  "selectedEnglishLevel": 75,
+  "couldPayTuition": true,
+  "haveDoneFrenchTest": true,
+  "canJustifyEnglishLevel": true,
+  "isResult3Available": true,
+  "academicYearHeadDetails3": {
+    "subjectWeightSystem": {
+      "name": "Crédit",
+      "id": "sws001",
+      "validated": true
+    },
+    "markSystem": {
+      "id": "crs0003",
+      "name": "Sur 20",
+      "validated": true
+    },
+    "schoolName": "Université de Douala",
+    "city": {
+      "country_id": 38,
+      "default": false,
+      "id": 19169,
+      "name": "Douala"
+    },
+    "country": {
+      "default": false,
+      "id": 38,
+      "iso2": "CM",
+      "name": "Cameroun",
+      "validated": true
+    },
+    "spokenLanguage": {
+      "name": "Français",
+      "id": "spl00001"
+    },
+    "academicYearOrganization": {
+      "name": "Semestre",
+      "id": "ayo00002",
+      "validated": true
+    }
+  },
+  "reportCard3": [
+    [
+      {
+        "reference": 1,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Gestion du Personnel",
+          "validated": true
+        },
+        "weight": {
+          "value": "8",
+          "validated": true
+        },
+        "mark": {
+          "value": "17",
+          "valueIn20": "17",
+          "validated": true
+        },
+        "rank": {
+          "value": "3",
+          "validated": true
+        }
+      },
+      {
+        "reference": 2,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Droit du Travail",
+          "validated": true
+        },
+        "weight": {
+          "value": "7",
+          "validated": true
+        },
+        "mark": {
+          "value": "16",
+          "valueIn20": "16",
+          "validated": true
+        },
+        "rank": {
+          "value": "4",
+          "validated": true
+        }
+      },
+      {
+        "reference": 3,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Gestion des Compétences",
+          "validated": true
+        },
+        "weight": {
+          "value": "8",
+          "validated": true
+        },
+        "mark": {
+          "value": "15",
+          "valueIn20": "15",
+          "validated": true
+        },
+        "rank": {
+          "value": "5",
+          "validated": true
+        }
+      },
+      {
+        "reference": 4,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Formation et Développement",
+          "validated": true
+        },
+        "weight": {
+          "value": "6",
+          "validated": true
+        },
+        "mark": {
+          "value": "14",
+          "valueIn20": "14",
+          "validated": true
+        },
+        "rank": {
+          "value": "6",
+          "validated": true
+        }
+      },
+      {
+        "reference": 5,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Stratégie RH",
+          "validated": true
+        },
+        "weight": {
+          "value": "7",
+          "validated": true
+        },
+        "mark": {
+          "value": "18",
+          "valueIn20": "18",
+          "validated": true
+        },
+        "rank": {
+          "value": "2",
+          "validated": true
+        }
+      },
+      {
+        "reference": 6,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Management Interculturel",
+          "validated": true
+        },
+        "weight": {
+          "value": "4",
+          "validated": true
+        },
+        "mark": {
+          "value": "16",
+          "valueIn20": "16",
+          "validated": true
+        },
+        "rank": {
+          "value": "4",
+          "validated": true
+        }
+      },
+      {
+        "reference": 7,
+        "is_baccalaureat": false,
+        "is_practical_work": true,
+        "label": {
+          "value": "Études de Cas RH",
+          "validated": true
+        },
+        "weight": {
+          "value": "5",
+          "validated": true
+        },
+        "mark": {
+          "value": "17",
+          "valueIn20": "17",
+          "validated": true
+        },
+        "rank": {
+          "value": "3",
+          "validated": true
+        }
+      },
+      {
+        "reference": 8,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Anglais des Affaires",
+          "validated": true
+        },
+        "weight": {
+          "value": "5",
+          "validated": true
+        },
+        "mark": {
+          "value": "18",
+          "valueIn20": "18",
+          "validated": true
+        },
+        "rank": {
+          "value": "1",
+          "validated": true
+        }
+      }
+    ],
+    [
+      {
+        "reference": 9,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Développement Organisationnel",
+          "validated": true
+        },
+        "weight": {
+          "value": "8",
+          "validated": true
+        },
+        "mark": {
+          "value": "16",
+          "valueIn20": "16",
+          "validated": true
+        },
+        "rank": {
+          "value": "4",
+          "validated": true
+        }
+      },
+      {
+        "reference": 10,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Leadership et Coaching",
+          "validated": true
+        },
+        "weight": {
+          "value": "7",
+          "validated": true
+        },
+        "mark": {
+          "value": "15",
+          "valueIn20": "15",
+          "validated": true
+        },
+        "rank": {
+          "value": "5",
+          "validated": true
+        }
+      },
+      {
+        "reference": 11,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Gestion des Projets RH",
+          "validated": true
+        },
+        "weight": {
+          "value": "8",
+          "validated": true
+        },
+        "mark": {
+          "value": "16",
+          "valueIn20": "16",
+          "validated": true
+        },
+        "rank": {
+          "value": "4",
+          "validated": true
+        }
+      },
+      {
+        "reference": 12,
+        "is_baccalaureat": false,
+        "is_practical_work": true,
+        "label": {
+          "value": "Analyse des Politiques RH",
+          "validated": true
+        },
+        "weight": {
+          "value": "7",
+          "validated": true
+        },
+        "mark": {
+          "value": "17",
+          "valueIn20": "17",
+          "validated": true
+        },
+        "rank": {
+          "value": "3",
+          "validated": true
+        }
+      }
+    ]
+  ],
+  "reportCard2": [
+    [
+      {
+        "reference": 1,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Gestion des Conflits",
+          "validated": true
+        },
+        "weight": {
+          "value": "6",
+          "validated": true
+        },
+        "mark": {
+          "value": "15",
+          "valueIn20": "15",
+          "validated": true
+        },
+        "rank": {
+          "value": "5",
+          "validated": true
+        }
+      },
+      {
+        "reference": 2,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Évaluation de la Performance",
+          "validated": true
+        },
+        "weight": {
+          "value": "8",
+          "validated": true
+        },
+        "mark": {
+          "value": "16",
+          "valueIn20": "16",
+          "validated": true
+        },
+        "rank": {
+          "value": "4",
+          "validated": true
+        }
+      },
+      {
+        "reference": 3,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Recrutement et Sélection",
+          "validated": true
+        },
+        "weight": {
+          "value": "8",
+          "validated": true
+        },
+        "mark": {
+          "value": "14",
+          "valueIn20": "14",
+          "validated": true
+        },
+        "rank": {
+          "value": "6",
+          "validated": true
+        }
+      },
+      {
+        "reference": 4,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Formation Professionnelle Continue",
+          "validated": true
+        },
+        "weight": {
+          "value": "7",
+          "validated": true
+        },
+        "mark": {
+          "value": "17",
+          "valueIn20": "17",
+          "validated": true
+        },
+        "rank": {
+          "value": "3",
+          "validated": true
+        }
+      },
+      {
+        "reference": 5,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Santé et Sécurité au Travail",
+          "validated": true
+        },
+        "weight": {
+          "value": "6",
+          "validated": true
+        },
+        "mark": {
+          "value": "18",
+          "valueIn20": "18",
+          "validated": true
+        },
+        "rank": {
+          "value": "2",
+          "validated": true
+        }
+      }
+    ],
+    [
+      {
+        "reference": 6,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Développement des Carrières",
+          "validated": true
+        },
+        "weight": {
+          "value": "8",
+          "validated": true
+        },
+        "mark": {
+          "value": "16",
+          "valueIn20": "16",
+          "validated": true
+        },
+        "rank": {
+          "value": "4",
+          "validated": true
+        }
+      },
+      {
+        "reference": 7,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Innovation en Ressources Humaines",
+          "validated": true
+        },
+        "weight": {
+          "value": "7",
+          "validated": true
+        },
+        "mark": {
+          "value": "15",
+          "valueIn20": "15",
+          "validated": true
+        },
+        "rank": {
+          "value": "5",
+          "validated": true
+        }
+      },
+      {
+        "reference": 8,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Environnement et Développement Durable",
+          "validated": true
+        },
+        "weight": {
+          "value": "8",
+          "validated": true
+        },
+        "mark": {
+          "value": "14",
+          "valueIn20": "14",
+          "validated": true
+        },
+        "rank": {
+          "value": "6",
+          "validated": true
+        }
+      },
+      {
+        "reference": 9,
+        "is_baccalaureat": false,
+        "is_practical_work": true,
+        "label": {
+          "value": "Communication Interpersonnelle",
+          "validated": true
+        },
+        "weight": {
+          "value": "6",
+          "validated": true
+        },
+        "mark": {
+          "value": "17",
+          "valueIn20": "17",
+          "validated": true
+        },
+        "rank": {
+          "value": "3",
+          "validated": true
+        }
+      },
+      {
+        "reference": 10,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Anglais Professionnel",
+          "validated": true
+        },
+        "weight": {
+          "value": "4",
+          "validated": true
+        },
+        "mark": {
+          "value": "16",
+          "valueIn20": "16",
+          "validated": true
+        },
+        "rank": {
+          "value": "4",
+          "validated": true
+        }
+      }
+    ]
+  ],
+"reportCard1": [
+  [
+    {
+      "reference": 1,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Gestion des Conflits",
+        "validated": true
+      },
+      "weight": {
+        "value": "6",
+        "validated": true
+      },
+      "mark": {
+        "value": "14",
+        "valueIn20": "14",
+        "validated": true
+      },
+      "rank": {
+        "value": "6",
+        "validated": true
+      }
+    },
+    {
+      "reference": 2,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Évaluation de la Performance",
+        "validated": true
+      },
+      "weight": {
+        "value": "8",
+        "validated": true
+      },
+      "mark": {
+        "value": "13",
+        "valueIn20": "13",
+        "validated": true
+      },
+      "rank": {
+        "value": "7",
+        "validated": true
+      }
+    },
+    {
+      "reference": 3,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Recrutement et Sélection",
+        "validated": true
+      },
+      "weight": {
+        "value": "8",
+        "validated": true
+      },
+      "mark": {
+        "value": "16",
+        "valueIn20": "16",
+        "validated": true
+      },
+      "rank": {
+        "value": "4",
+        "validated": true
+      }
+    },
+    {
+      "reference": 4,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Formation Professionnelle Continue",
+        "validated": true
+      },
+      "weight": {
+        "value": "7",
+        "validated": true
+      },
+      "mark": {
+        "value": "15",
+        "valueIn20": "15",
+        "validated": true
+      },
+      "rank": {
+        "value": "5",
+        "validated": true
+      }
+    },
+    {
+      "reference": 5,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Santé et Sécurité au Travail",
+        "validated": true
+      },
+      "weight": {
+        "value": "6",
+        "validated": true
+      },
+      "mark": {
+        "value": "17",
+        "valueIn20": "17",
+        "validated": true
+      },
+      "rank": {
+        "value": "3",
+        "validated": true
+      }
+    }
+  ],
+  [
+    {
+      "reference": 6,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Développement des Carrières",
+        "validated": true
+      },
+      "weight": {
+        "value": "8",
+        "validated": true
+      },
+      "mark": {
+        "value": "15",
+        "valueIn20": "15",
+        "validated": true
+      },
+      "rank": {
+        "value": "5",
+        "validated": true
+      }
+    },
+    {
+      "reference": 7,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Innovation en Ressources Humaines",
+        "validated": true
+      },
+      "weight": {
+        "value": "7",
+        "validated": true
+      },
+      "mark": {
+        "value": "14",
+        "valueIn20": "14",
+        "validated": true
+      },
+      "rank": {
+        "value": "6",
+        "validated": true
+      }
+    },
+    {
+      "reference": 8,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Environnement et Développement Durable",
+        "validated": true
+      },
+      "weight": {
+        "value": "8",
+        "validated": true
+      },
+      "mark": {
+        "value": "13",
+        "valueIn20": "13",
+        "validated": true
+      },
+      "rank": {
+        "value": "7",
+        "validated": true
+      }
+    },
+    {
+      "reference": 9,
+      "is_baccalaureat": false,
+      "is_practical_work": true,
+      "label": {
+        "value": "Communication Interpersonnelle",
+        "validated": true
+      },
+      "weight": {
+        "value": "6",
+        "validated": true
+      },
+      "mark": {
+        "value": "16",
+        "valueIn20": "16",
+        "validated": true
+      },
+      "rank": {
+        "value": "4",
+        "validated": true
+      }
+    },
+    {
+      "reference": 10,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Anglais Professionnel",
+        "validated": true
+      },
+      "weight": {
+        "value": "4",
+        "validated": true
+      },
+      "mark": {
+        "value": "14",
+        "valueIn20": "14",
+        "validated": true
+      },
+      "rank": {
+        "value": "6",
+        "validated": true
+      }
+    }
+  ]
+]
+
+}

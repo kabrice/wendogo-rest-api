@@ -1,0 +1,471 @@
+I am in a french academic context. People from abroad applied to french university training aka courses. I have french university data. And the goal is to generate with python invalid_courses and valid courses
+
+First, here is a bit how the database is organized
+
+from dataclasses import dataclass
+from . import db
+
+@dataclass
+class Course(db.Model):
+    """conditions sur la specialité en question"""
+    __tablename__ = 'course'
+    __table_args__ = {'extend_existing': True} 
+
+    id = db.Column(db.String(8), primary_key=True)
+    name = db.Column(db.String(255), nullable=True)
+    title = db.Column(db.String(255), nullable=True)
+    url = db.Column(db.String(255), nullable=True)
+    number_of_students = db.Column(db.Integer, nullable=True)
+    access_rate = db.Column(db.Float, nullable=True)
+    professional_integration_rate = db.Column(db.Float, nullable=True)
+    recommendation_letter_requirement_level = db.Column(db.Float, nullable=True)
+    professional_experience_requirement_level = db.Column(db.Float, nullable=True)
+    check_practical_work_experience = db.Column(db.Boolean, nullable=True)
+    tutorial_requirement_level = db.Column(db.Float, nullable=True) # take this later into account
+    is_progression_mandatory = db.Column(db.Boolean, nullable=True)
+    is_porfolio_mandatory = db.Column(db.Boolean, nullable=True)
+    is_ranking_mandatory = db.Column(db.Boolean, nullable=True)
+    check_class_repeat = db.Column(db.Boolean, nullable=True)
+    check_iae_score = db.Column(db.Boolean, nullable=True)
+    french_level = db.Column(db.String(15), nullable=True) # C2, C1, B2, B1, A2, A1
+    english_level = db.Column(db.String(15), nullable=True)
+    another_language_level = db.Column(db.String(15), nullable=True)
+    exoneration_id = db.Column(db.String(8), db.ForeignKey('exoneration.id'), nullable=True)
+    annual_tuition = db.Column(db.Float, nullable=True)
+    check_grade_since_n3 = db.Column(db.Boolean, nullable=True)
+    school_id = db.Column(db.String(8), db.ForeignKey('school.id'), nullable=True)
+    major_id = db.Column(db.String(8), db.ForeignKey('major.id'), nullable=True)
+    level_id = db.Column(db.String(8), db.ForeignKey('level.id'), nullable=True) # catégorie d'entrée dans le fichier Etude_France_Canada : Niveau d'entrée dans l'établissement
+    course_type_id = db.Column(db.String(8), db.ForeignKey('course_type.id'), nullable=True)
+    educational_language_id = db.Column(db.String(8), db.ForeignKey('spoken_language.id'), nullable=True)
+
+
+Example of data : 
+id	name	title	course_type_id	url	number_of_students	access_rate	professional_integration_rate	exoneration_id	recommendation_letter_requirement_level	professional_experience_requirement_level	check_practical_work_experience	tutorial_requirement_level	is_progression_mandatory	is_ranking_mandatory	check_class_repeat	check_iae_score	french_level	english_level	annual_tuition	check_grade_since_n3	major_id	level_id	is_porfolio_mandatory	another_language_level	educational_language_id	comments	created_at	updated_at	created_by	updated_by				
+crs0001	Biologie intégrative et changement globaux	Master indifférencié (recherche et professionnel) ...	ctp00002	https://www.univ-orleans.fr/fr/sciences-techniques...	40	25	89	exo0001	0	0.5	0	0	0	0	0	0			0	0	maj0001	lev0014	0		spl00002	NULL	2024-09-15 05:26:55	2024-09-15 05:26:55	1	1				
+
+from dataclasses import dataclass
+from . import db
+
+@dataclass
+class Bac(db.Model):
+    "Niveau éducatif en année : Bac-3, Bac-2, Bac-1, Bac+1,  Bac+2 etc."
+
+    __tablename__ = 'bac'
+    __table_args__ = {'extend_existing': True} 
+
+    id = db.Column(db.String(8), primary_key=True) 
+    name = db.Column(db.Integer, nullable=False)
+
+Example of date :
+id	name
+bac00001	-3
+bac00002	-2
+bac00003	-1
+bac00004	1
+bac00005	2
+bac00006	3
+bac00007	4
+bac00008	5
+
+
+@dataclass
+class User(db.Model):
+
+    __tablename__ = 'user'
+    __table_args__ = {'extend_existing': True} 
+
+    id = db.Column(db.Integer, primary_key=True)
+    address = db.Column(db.String(255), nullable=True)
+    description = db.Column(db.String(2500), nullable=True)#2
+    email = db.Column(db.String(50), nullable=True)#1
+    firstname = db.Column(db.String(46), nullable=True)#1
+    lastname = db.Column(db.String(46), nullable=True)#1
+    birthdate = db.Column(db.Date)#1
+    salutation = db.Column(db.String(15), nullable=True)#1
+    created_at = db.Column(db.DateTime, default=datetime.utcnow())
+    country = db.Column(db.String(4), nullable=True)
+    updated_at = db.Column(db.DateTime)
+    phone = db.Column(db.String(25), nullable=True)
+    has_whatsapp = db.Column(db.Boolean, unique=False, default=False, nullable=True)
+    whatsapp_verification_attempt = db.Column(db.Integer, default=0)
+    occupation = db.Column(db.String(20), nullable=True)#2
+    nationality_id = db.Column(db.String(8), db.ForeignKey('nationality.id'), nullable=True)
+    passport_id = db.Column(db.Integer, db.ForeignKey('passport.id'), nullable=True)
+    is_disabled = db.Column(db.Boolean, unique=False, default=False, nullable=True) # handicapé ou pas
+
+@dataclass
+class Lead(db.Model):
+    """Prospect qui sera plus tard converti en compte."""
+    __tablename__ = 'lead'
+    __table_args__ = {'extend_existing': True} 
+   
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    bac_id = db.Column(db.String(8), db.ForeignKey('bac.id'), nullable=True) # bac00004 =>  bac+1 , bac00005=> bac+2, bac00006=>bac+3, etc
+    degree_id = db.Column(db.String(8), db.ForeignKey('degree.id'), nullable=True) deg00004 =>French Baccalaureate, deg00005 => BTS, deg00006 => DUT … deg00008=>Licence, deg00009=>Master
+    can_finance = db.Column(db.Boolean, nullable=True) # If lead can afford study + visa fees
+    french_level = db.Column(db.String(8), nullable=True) # C2, C1, B2, B1, A2, A1
+    can_prove_french_level = db.Column(db.Boolean, nullable=True)
+    english_level = db.Column(db.String(8), nullable=True) # C2, C1, B2, B1, A2, A1
+    can_prove_english_level = db.Column(db.Boolean, nullable=True) 
+    number_of_repeats_n_3 = db.Column(db.Integer, nullable=True)  # n is the last or current academic year. Here it's entered how many times the student has repeated the year during n-3.
+    number_of_blank_years = db.Column(db.Integer, nullable=True) # n is the last or current academic year. Here it's entered how many years the student has been out of school during n-3.
+    other_spoken_language_id = db.Column(db.String(8), db.ForeignKey('spoken_language.id'), nullable=True)
+    other_spoken_language_level = db.Column(db.String(8), nullable=True)
+    can_prove_spoken_language_level = db.Column(db.Boolean, nullable=True) 
+    french_travel_start_date = db.Column(db.Date, nullable=True)
+    french_travel_end_date = db.Column(db.Date, nullable=True)
+
+@dataclass
+class LevelValue(db.Model):
+    """Différents domaines d'études possible (Physique, Chimie, Action et communication commerciales, Biologie moléculaire, etc.) existant en base de données"""    
+
+    __tablename__ = 'level_value'
+    __table_args__ = {'extend_existing': True} 
+    cache_ok = True
+
+    id = db.Column(db.String(8), primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+
+Example of LevelValue
+id	name
+lvv0001	Action et communication administratives
+lvv0002	Action et communication commerciales
+lvv0003	Administration économique et sociale
+lvv0004	Architecture
+lvv0005	Administration publique
+
+@dataclass
+class CourseLevelRelation(db.Model):
+    "Different level values that a course can have."
+
+    __tablename__ = 'course_level_relation'
+    __table_args__ = {'extend_existing': True} 
+
+    id = db.Column(db.String(8), primary_key=True) # course_level_relation id is the form of clv0001, clv0002, etc.
+    course_id = db.Column(db.String(8), db.ForeignKey('course.id'), nullable=False)
+    bac_id = db.Column(db.String(8), db.ForeignKey('bac.id'), nullable=False) # Minimum bac level required to access the course (bac00004 =>  bac+1 , bac00005=> bac+2, bac00006=>bac+3, etc)
+    level_value_id = db.Column(db.String(8), db.ForeignKey('level_value.id'), nullable=False)
+    minimum_score = db.Column(db.Float, nullable=False) # Minimum general average mark of the most recent to access the course (For example: 12/20, etc.)
+    priority = db.Column(db.Integer, nullable=False) # order of importance for the course (exemple : C>D>A pour Tle)
+    is_L1 = db.Column(db.Boolean, nullable=True, default=False) # True => Minimum general average mark is applicable for L1 (Licence 1)
+    is_L2 = db.Column(db.Boolean, nullable=True, default=False) # True => Minimum general average mark is applicable for L2 (Licence 2)
+    is_L3 = db.Column(db.Boolean, nullable=True, default=False) # True => Minimum general average mark is applicable for L3 (Licence 3)
+
+@dataclass
+class CourseSubjectRelation(db.Model):
+    "Required subject with criteria for a given course"
+
+    __tablename__ = 'course_subject_relation'
+    __table_args__ = {'extend_existing': True} 
+
+    id = db.Column(db.String(8), primary_key=True) # id is the form of csr0001, csr0002, etc.
+    course_id = db.Column(db.String(8), db.ForeignKey('course.id'), nullable=False)
+    subject_id = db.Column(db.String(8), db.ForeignKey('subject.id'), nullable=False)
+    minimum_score = db.Column(db.Float, nullable=False) # Moyenne minimale dans la matière pour accéder à la formation (Par exemple : 12/20 en Biologie.)
+    priority = db.Column(db.Integer, nullable=False) # ordre d'importance (exemple : 1 most important, and then 2, 3, etc.)
+    check_professional_experience = db.Column(db.Boolean, nullable=False) # True => Expérience professionnelle dans la matière est requise pour accéder à la formation
+
+@dataclass
+class Subject(db.Model):
+    """Subject used in the application of courses."""
+    __tablename__ = 'subject'
+    __table_args__ = {'extend_existing': True} 
+
+    id = db.Column(db.String(8), primary_key=True)
+    code = db.Column(db.String(8), nullable=True)
+    name = db.Column(db.String(255), nullable=False)
+    parent_id = db.Column(db.String(8), db.ForeignKey('subject.id'), nullable=True) # Parent subject
+    level_id = db.Column(db.String(8), db.ForeignKey('level.id'), nullable=True) # Level related to the subject
+    is_tech = db.Column(db.Boolean, default=False) # Technical subject used in the process and not shown to the user
+
+
+@dataclass
+class Level(db.Model):
+    "level of study corresponding to the baccalaureate level (Bac+1, Bac+2, etc) and the degree level (DUT, BTS, License, Master, etc.)"
+    __tablename__ = 'level'
+    __table_args__ = {'extend_existing': True} 
+
+    id = db.Column(db.String(8), primary_key=True) # id is in the form of lev0001, lev0002, lev0003, etc
+    degree_id = db.Column(db.String(8), db.ForeignKey('degree.id'), nullable=False) #  deg00004 =>French Baccalaureate, deg00005 => BTS, deg00006 => DUT … deg00008=>Licence, deg00009=>Master
+    bac_id = db.Column(db.String(8), db.ForeignKey('bac.id'), nullable=False) # bac00001 => Bac-3, bac00002 => Bac-2, bac00003 => Bac-1, bac00004 => Bac+1, bac00005 => Bac+2, bac00006 => Bac+3, bac00007 => Bac+4, bac00008 => Bac+5
+
+
+@dataclass
+class ExternalDegree(db.Model):
+    """Name of the diploma entered manually by the user (not yet existing in the database)"""
+    __tablename__ = 'external_degree'
+    __table_args__ = {'extend_existing': True} 
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False) # ex: "Baccalauréat en sciences, option mathématiques et physique; Licence en droit privé; Master en sciences de l'ingénieur civil, orientation électricité"
+
+
+@dataclass
+class LeadLevelValueRelation(db.Model):
+    """level value suggéré et selectionné par l'utilisateur au début de la simulation"""
+    __tablename__ = 'lead_level_relation'
+    __table_args__ = {'extend_existing': True} 
+
+    id = db.Column(db.Integer, primary_key=True)
+    lead_id = db.Column(db.Integer, db.ForeignKey('lead.id'), nullable=False) 
+    level_value_id = db.Column(db.String(8), db.ForeignKey('level_value.id'), nullable=False)
+    external_degree_id = db.Column(db.Integer, db.ForeignKey('external_degree.id'), nullable=False)
+    school_year_id = db.Column(db.String(8), db.ForeignKey('school_year.id'), nullable=False) # l'année d'étude la plus récente : schy0001=> 1952, schy0002=>1953…schy0073=>2024, schy0074=>2025
+    is_current_year = db.Column(db.Boolean, default=False)
+
+Example of LeadLevelValueRelation
+
+@dataclass
+class ReportCardSubjectRelation(db.Model):
+    """Sort of subject and the caracteristics of the mark for a report card."""
+    __tablename__ = 'report_card_subject_relation'
+    __table_args__ = {'extend_existing': True} 
+
+    id = db.Column(db.Integer, primary_key=True)
+    report_card_id = db.Column(db.Integer, db.ForeignKey('report_card.id'), nullable=False)
+    school_term = db.Column(db.Integer, nullable=False) # n° de trimestre ou de semestre (report_card.academic_year_organization_id) : 1=>Trimestre 1, 2=>Trimestre 2, 3=>Trimestre 3 
+                                                       # or 1=>Semestre 1, 2=>Semestre 2 when is_baccalaureat = False. If is_baccalaureat = True, we ignore this field
+    mark = db.Column(db.String(4), nullable=False) # mark in the mark_system of the country where the mark was obtained
+    mark_in_20 = db.Column(db.Float, nullable=False) # mark converted to the 20 mark system of the lead target country or school
+    weight = db.Column(db.Float, nullable=False) # Credit ou coefficient value of the subject
+    rank = db.Column(db.Integer, nullable=False) # 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 : 1 => meilleur note, 10 => moins bonne note
+    external_subject_id = db.Column(db.Integer, db.ForeignKey('external_subject.id'), nullable=False) # external subject entered by the user different from the built-in 
+                                                                                                      # subject (subject object) recognized by the system
+    subject_id = db.Column(db.String(8), db.ForeignKey('subject.id'), nullable=False) # use this when the subject is recognized by the system
+    is_baccalaureat = db.Column(db.Boolean, nullable=False, default=False) # True if the subject is a baccalaureat subject
+    is_pratical_subject = db.Column(db.Boolean, nullable=False, default=False) # TP: Travaux Pratiques
+
+
+@dataclass
+class ReportCard(db.Model):
+    """Report card header of the student for a specific school year"""
+    __tablename__ = 'report_card'
+    __table_args__ = {'extend_existing': True} 
+
+    id = db.Column(db.Integer, primary_key=True)
+    school_year_id = db.Column(db.String(8), db.ForeignKey('school_year.id'), nullable=False)
+    bac_id = db.Column(db.String(8), db.ForeignKey('bac.id'), nullable=False) 
+    lead_id = db.Column(db.Integer, db.ForeignKey('lead.id'), nullable=False)
+    country_id = db.Column(db.Integer, db.ForeignKey('countries.id'), nullable=False)
+    city_id = db.Column(db.Integer, db.ForeignKey('cities.id'), nullable=False)
+    external_school_id = db.Column(db.Integer, db.ForeignKey('external_school.id'), nullable=False) # school name entered by the user different from the built-in school (school object)
+    spoken_language_id = db.Column(db.String(8), db.ForeignKey('spoken_language.id'), nullable=False)
+    academic_year_organization_id = db.Column(db.String(8), db.ForeignKey('academic_year_organization.id'), nullable=False) # ayo00001 => Trimestre, ayo00002 => Semestre
+    mark_system_id = db.Column(db.String(8), db.ForeignKey('mark_system.id'), nullable=False) # crs0001 => Sur 6, crs0002 => Sur 10, crs0003 => Sur 20, crs0004 => Sur 100, crs0005 => Lettres (A+, A, B-, etc.)
+    subject_weight_system_id = db.Column(db.String(8), db.ForeignKey('subject_weight_system.id'), nullable=False)  # sws001 => Coefficient, sws002 => Crédit
+    school_term1_average_mark_in_20 = db.Column(db.Float, nullable=False) # Moyenne générale sur 20 du school_term 1 (semestre 1 ou trimestre 1)
+    school_term2_average_mark_in_20 = db.Column(db.Float, nullable=False) # Moyenne générale sur 20 du school_term 2 (semestre 2 ou trimestre 2)
+    school_term3_average_mark_in_20 = db.Column(db.Float, nullable=False) # Moyenne générale sur 20 du school_term 3 (trimestre 3)
+    baccalaureat_average_mark_in_20 = db.Column(db.Float, nullable=False) # Moyenne générale sur 20 du baccalaureat
+    average_mark_in_20 = db.Column(db.Float, nullable=False) # Moyenne générale sur 20 de l'année scolaire
+    school_term1_overall_rank = db.Column(db.Integer, nullable=False) # lead overall rank for the school_term 1 (semestre 1 ou trimestre 1)
+    school_term2_overall_rank = db.Column(db.Integer, nullable=False) # lead overall rank for the school_term 2 (semestre 2 ou trimestre 2)
+    school_term3_overall_rank = db.Column(db.Integer, nullable=False) # lead overall rank for the school_term 3 (trimestre 3)
+    overall_rank = db.Column(db.Integer, nullable=False) # lead overall rank in the class based on then rank of the student in each subject
+
+PROMPT
+
+Calm down, Here is what I want you to do : 
+I want to create  a generate_courses(lead_id) method that will return both lists of valid and invalid courses.
+1. Return no available courses if we are in an ineligible  context
+    - First ineligibility context : Have credit debts from a previous year in the current university cycle. 
+        Here is how I want you to perform it algorithmically (though you can suggest me a better approach)  : 
+        // Application between License 1 and License  3
+	    if(lead.bac_id<='bac00006' (bac+3)){ 
+
+            if(report_card.get(lead_id=lead_id, bac_id='bac00004') and hasnt_validated_all_credit(lead_id, 'bac00004')){// 'bac00005' => bac+1, hasnt_validated_all_credit must return true if the student has credit debts from that bac level (base your logic on ReportCardSubjectRelation. If the sum of the weight of the subjects validated by the lead (subject mark>10) is less than 60, then the student has credit debts)
+                return invalid_courses = [{id: None, reason : "Vous avez une ou plusieurs dettes de crédit en Bac+1"}]
+            }
+
+            if(report_card.get(lead_id=lead_id, bac_id='bac00005') and hasnt_validated_all_credit(lead_id, 'bac00005')){
+                return invalid_courses = [{id: None, reason : "Vous avez une ou plusieurs dettes de crédit en Bac+2"}]
+            }
+
+            if(has_less_than_12_in_baccalaureat(lead_id)){ // has_less_than_12_in_baccalaureat must return true if the student has less than 12 (strictly <12) in the baccalaureat in average mark 
+                return invalid_courses = [{id: None, reason : "Vous avez obtenu mention Passable au baccalauréat ou alors le baccalauréat est inexistant"}]
+            }
+
+            if(lead_id== 'bac00006'){ // bac+3
+                if(report_card.get(lead_id=lead_id, bac_id='bac00006') and (cumulative_mark_for_the_completed_years(lead_id, 'bac00004', 'bac00006')<10)  and schoolterm_is_complete(lead_id)){
+
+                    if(hasnt_validated_all_credit(lead_id, 'bac00006')){
+                        return invalid_courses = [{id: None, reason : "Vous avez une ou plusieurs dettes de crédit en Bac+3"}]
+                    }
+                    // schoolterm_is_complete must return true if we have at least 2 semestres or 3 trimestres ( build your logic on ReportCardSubjectRelation.schoolTerm). All consider schoolterm_is_complete for university (>bac00003) and schoolterm_is_complete for high school (bac00001, bac00002, bac00003) is always true
+                    // Here cumulative_mark_for_the_completed_years must return the average mark of the student from Bac+1 ('bac00004') to Bac+3 ('bac00006'). Exclude of the calculation the baccalaureat subjects.
+                    return invalid_courses = [{id: None, reason : "Votre moyenne cumulée jusqu'au bac+3 inclus est inférieure au seuil de 10"}]
+                }else if (report_card.get(lead_id=lead_id, bac_id='bac00006') and lead.bac_id== 'bac00006'and (cumulative_mark_for_the_completed_years(lead_id, 'bac00004', 'bac00006')<10)  and !schoolterm_is_complete(lead_id)){  
+                    //Here cumulative_mark_for_the_completed_years must return the average mark of the student from Bac+1 ('bac00004') to Bac+2 ('bac00006'). Exclude of the calculation the baccalaureat subjects .
+                    return invalid_courses = [{id: None, reason : "Votre moyenne cumulée jusqu'au bac+2 inclus est inférieure au seuil de 10"}]
+                }
+            }
+            if(lead_id== 'bac00005'){  // bac+2
+                if(report_card.get(lead_id=lead_id, bac_id='bac00005') and (cumulative_mark_for_the_completed_years(lead_id, 'bac00003', 'bac00005')<10)  and schoolterm_is_complete(lead_id)){ 
+                    // Remember 'bac00003' => Terminale and most of the time, we use trimestre here
+                    return invalid_courses = [{id: None, reason : "Votre moyenne cumulée jusqu'au bac+2 inclus est inférieure au seuil de 10"}]
+                }else if (report_card.get(lead_id=lead_id, bac_id='bac00005') and lead.bac_id== 'bac00005'and (cumulative_mark_for_the_completed_years(lead_id, 'bac00003', 'bac00005')<10)  and !schoolterm_is_complete(lead_id)){  
+                    return invalid_courses = [{id: None, reason : "Votre moyenne cumulée jusqu'au bac+1 inclus est inférieure au seuil de 10"}]
+                }
+            }
+            if(lead_id== 'bac00004'){ // bac+1
+                if(report_card.get(lead_id=lead_id, bac_id='bac00004') and (cumulative_mark_for_the_completed_years(lead_id, 'bac00002', 'bac00004')<10)  and schoolterm_is_complete(lead_id)){ 
+                    return invalid_courses = [{id: None, reason : "Votre moyenne cumulée jusqu'au bac+1 inclus est inférieure au seuil de 10"}]
+                }else if (report_card.get(lead_id=lead_id, bac_id='bac00004') and lead.bac_id== 'bac00004'and (cumulative_mark_for_the_completed_years(lead_id, 'bac00002', 'bac00004')<10)  and !schoolterm_is_complete(lead_id)){  
+                    return invalid_courses = [{id: None, reason : "Votre moyenne cumulée jusqu'au bac est inférieure au seuil de 10"}]
+                }
+            }
+            if(lead_id== 'bac00003'){ // bac-1 (Terminale)
+                if(report_card.get(lead_id=lead_id, bac_id='bac00003') and (cumulative_mark_for_the_completed_years(lead_id, 'bac00001', 'bac00003')<10)){ 
+                    return invalid_courses = [{id: None, reason : "Votre moyenne cumulée jusqu'en Terminale est inférieure au seuil de 10"}]
+                }
+            }
+            // Note of above : In the cumulative_mark_for_the_completed_years method, you can ignore the calculation of the subjects of 'bac00001', 'bac00002', 'bac00003', 'bac00004', 'bac00005' or 'bac00006' the related report card doesn't exist.
+        }
+        
+I want to know if lead has progressed  between 2 consecutive available year. I want you to base yourself on report_cards, and average_mark_in_20 
+Example :
+If lead.bac_id == bac00010 and bac00009 exist, average_mark_in_20 = 13 for bac00010 and average_mark_in_20 = 12 for bac00009, then the student has progressed => has_progressed = True
+else if lead.bac_id == bac00010 and bac00008 exist, average_mark_in_20 = 13 for bac00010 and average_mark_in_20 = 12 for bac00008, then the student has progressed => has_progressed = True 
+else if bac00009 and bac00008 exist, average_mark_in_20 = 13 for bac00009 and average_mark_in_20 = 12 for bac00008, then the student has progressed => has_progressed = True 
+
+If lead.bac_id == bac00009 and bac00008 exist, average_mark_in_20 = 13 for bac0009 and average_mark_in_20 = 12 for bac00008, then the student has progressed => has_progressed = True
+else if lead.bac_id == bac00009 and bac00007 exist, average_mark_in_20 = 13 for bac00009 and average_mark_in_20 = 12 for bac00007, then the student has progressed => has_progressed = True 
+else if bac00008 and bac00007 exist, average_mark_in_20 = 13 for bac00008 and average_mark_in_20 = 12 for bac00007, then the student has progressed => has_progressed = True 
+
+...
+Ensure yourself that we have margin of 0.3.  Example : if average_mark_in_20 = 13.3 for bac00010 and average_mark_in_20 == 13 for bac00009, we could tolerate it, the return has_progressed = True
+
+for course_level_value in course_level_values :
+    if (
+        (course_level_value.level_value_id == lead_level_relation.level_value_id or Helper.cosine_sim(course_level_value.level_value.name, lead_level_relation.level_value.name) >=0.25) 
+        and (most_recent_available_report_card.average_mark_in_20<course_level_value.minimum_score))  
+           if ((course_level_value.is_L1 and average_mark_in_20 of report_card where lead.bac_id == 'bac00004'<course_level_value.minimum_score) or
+                (course_level_value.is_L2 and average_mark_in_20 of report_card where lead.bac_id == 'bac00005'<course_level_value.minimum_score) or
+                (course_level_value.is_L3 and average_mark_in_20 of report_card where lead.bac_id == 'bac00006'<course_level_value.minimum_score) 
+                )
+                remove course from valid_courses
+
+for subject_relation in course_subject_relations:
+    if subject_relation.minimum_score:
+        for report_card_subject_relation in report_card_subject_relations:
+            if (report_card_subject_relation.subject_id == subject_relation.subject_id or Helper.cosine_sim(subject_relation.subject.name , report_card_subject_relation.subject.name) >=0.25) and report_card_subject_relation.mark_in_20<subject_relation.minimum_score:
+                remove course from valid_courses
+
+new_course_subject_relations = course_subject_relations where course_id in valid_courses and where subject.is_tech == True 
+for new_subject_relation in new_course_subject_relations:
+    if new_subject_relation.subject_id  == 'suj0212': #Check if lead perform good : mark>14 for the 4 top report_card_subject_relation with the highest weight over the years
+        for report_card in report_cards:
+            # get the 4 top report_card_subject_relation with the highest weight over the school terms, if the mark is less than 14 and don't have progress, remove the course from valid_courses (with an approropriate reason)
+    if new_subject_relation.subject_id  == 'suj0382': 
+        # Check average mark in baccalaureat>13, remove the course from valid_courses if not (with an approropriate reason)
+    if new_subject_relation.subject_id  == 'suj0403':
+        for report_card_subject_relation in report_card_subject_relations:
+            for term in range(1, 4): 
+                if report_card_subject_relation.schoolTerm == term and (report_card_subject_relation.subject_id == subject_relation.subject_id or Helper.cosine_sim(subject_relation.subject.name , report_card_subject_relation.subject.name) >=0.25):
+                    add_subject_mark_to_calculate_average_per_term(term, report_card_subject_relation.mark_in_20, report_card_subject_relation.weight)
+        if average_subject_mark_in_20_per_term[1]<12 or average_subject_mark_in_20_per_term[2]<12 or average_subject_mark_in_20_per_term[3]<12:
+            remove course from valid_courses (with an approropriate reason)
+    if new_subject_relation.subject_id  == 'suj0405':
+        for report_card_subject_relation in report_card_subject_relations:
+                if (report_card_subject_relation.subject_id == subject_relation.subject_id or Helper.cosine_sim(subject_relation.subject.name , report_card_subject_relation.subject.name) >=0.25):
+                    # report_card_subject_relation.rank>10, remove the course from valid_courses (with an approropriate reason)
+
+valid_courses reorganization
+level_values could be related subjects through course_subject_relations and course_level_relations.
+Example of data :
+
+course_level_relation
+id	course_id	level_value_id	priority
+clr0001	crs0290	lvv0072	1
+clr0002	crs0290	lvv0017	2
+clr0003	crs0290	lvv0044	3
+clr0004	crs0290	lvv0053	4
+clr0005	crs0290	lvv0052	5
+clr0006	crs0290	lvv0054	6
+clr0007	crs0290	lvv0033	6
+clr0008	crs0290	lvv0003	6
+clr0009	crs0291	lvv0072	1
+clr0010	crs0291	lvv0017	2
+clr0011	crs0291	lvv0044	3
+clr0012	crs0291	lvv0053	4
+which means crs0290 has a group of level_value_id (lvv0072 => with priority 1, lvv0017 => with priority 2, etc.) and crs0291 has another group of level_value_id (lvv0072 => with priority 1, lvv0017 => with priority 2, etc.)
+
+course_subject_relation
+id	course_id	subject_id	priority
+csr1013	crs0290	suj0364	1
+csr1014	crs0290	suj0363	2
+csr1015	crs0290	suj0373	3
+csr1016	crs0291	suj0364	1
+csr1017	crs0291	suj0363	2
+csr1018	crs0291	suj0373	3
+csr1019	crs0291	suj0369	4
+which  means crs0290 has a group of subject_id (suj0364 => with priority 1, suj0363 => with priority 2, etc.) and crs0291 has another group of subject_id (suj0364 => with priority 1, suj0363 => with priority 2, etc.)
+
+so crs0290 has a group of level_value_id (lvv0072 => with priority 1, lvv0017 => with priority 2, etc.) and crs0290 has a group of subject_id (suj0364 => with priority 1, suj0363 => with priority 2, etc.) 
+same for crs0291 which has a group of level_value_id (lvv0072 => with priority 1, lvv0017 => with priority 2, etc.) and crs0291 has a group of subject_id (suj0364 => with priority 1, suj0363 => with priority 2, etc.)
+
+so here is how I want to reorganize the order of data of valid_courses: 
+ for each course of valid_courses, the more Helper.cosine_sim(level_value names with high priority from course_level_relation, (lead_level_relation.level_value.name and lead_level_relation.external_degree.name)) are high, 
+and the more Helper.cosine_sim(subject names with high priority from course_subject_relation, (report_card_subject_relation.subject.name (if not None) and report_card_subject_relation.external_degree.name (if not None; report_card_subject_relation from report_card_subjects) and lead_subject_relation.subject.name (lead_subject_relation from lead_subject_relation_all))) are high, put the course at the top of the list of valid_courses
+
+why don't you use the priority in course_level_relation and course_subject_relation as describe below?
+
+course_level_relation
+id	course_id	level_value_id	priority
+clr0001	crs0290	lvv0072	1
+clr0002	crs0290	lvv0017	2
+clr0003	crs0290	lvv0044	3
+clr0004	crs0290	lvv0053	4
+clr0005	crs0290	lvv0052	5
+clr0006	crs0290	lvv0054	6
+clr0007	crs0290	lvv0033	6
+clr0008	crs0290	lvv0003	6
+clr0009	crs0291	lvv0072	1
+clr0010	crs0291	lvv0017	2
+clr0011	crs0291	lvv0044	3
+clr0012	crs0291	lvv0053	4
+which means crs0290 has a group of level_value_id (lvv0072 => with priority 1, lvv0017 => with priority 2, etc.) and crs0291 has another group of level_value_id (lvv0072 => with priority 1, lvv0017 => with priority 2, etc.)
+
+course_subject_relation
+id	course_id	subject_id	priority
+csr1013	crs0290	suj0364	1
+csr1014	crs0290	suj0363	2
+csr1015	crs0290	suj0373	3
+csr1016	crs0291	suj0364	1
+csr1017	crs0291	suj0363	2
+csr1018	crs0291	suj0373	3
+csr1019	crs0291	suj0369	4
+which  means crs0290 has a group of subject_id (suj0364 => with priority 1, suj0363 => with priority 2, etc.) and crs0291 has another group of subject_id (suj0364 => with priority 1, suj0363 => with priority 2, etc.)
+
+REFILTRING COURSES
+course_subject_relation data looks like this :
+course_subject_relation
+id	course_id	subject_id	priority
+csr1013	crs0290	suj0364	1
+csr1014	crs0290	suj0363	2
+csr1015	crs0290	suj0373	3
+csr1016	crs0291	suj0364	1
+csr1017	crs0291	suj0363	2
+csr1018	crs0291	suj0373	3
+csr1019	crs0291	suj0369	4
+...
+
+crs0290 has a group of subjects (suj0364 => with priority 1, suj0363 => with priority 2, etc.) and crs0291 has another group of subjects (suj0364 => with priority 1, suj0363 => with priority 2, etc.)
+I want you to rebuild get_courses_where_subjects_are_similar_to_lead_external_subjects in this way :
+- Fist retrieve the 3 most important weight in report_card_subject_relation 
+- Second retrieve all the subject names related to those weights
+- Third, retrieve the courses whose the group of subjects has the more subjects in common (similarity) with the target_subject_names using Helper.cosine_sim(subject_name, target_subject_name) and the highest weights. Put the courses in the list of top_courses
+I think of something like this : 
+target_subject_names_with_weight = [{{'name': 'Mathématiques Et Applications', 'weight': 7}, {'name': 'Chimie Des Matériaux', 'weight': 7}, {'name': 'Physique', 'weight': 5},  {'name': 'Informatique', 'weight': 4}, {'name': 'Anglais', 'weight': 4}, {'name': 'Français', 'weight': 4}, {'name': 'Litterature', 'weight': 4}]
+course_subject_groups = [ "crs0290" : ['Mathématiques appliquées', 'Laboratoire Chimie', 'Art plastique',  'informatique', 'Anglais'],  
+                          "crs0291" : ['Mathématiques', 'Gestion', 'Litterature',  'informatique', 'Anglais', 'Français'],  
+                          "crs0293" : ['Mathématiques', 'Physique', 'Chimie',  'informatique'],
+                          "crs0294" : ['Informatique', 'Physique', 'informatique de gestion',  'Litterature', 'Anglais', 'Français']
+Here it's obvious that crs0293 is the most similar to te target_subject_names_with_weight because it has the most subjects (with highest weight) in common with the target_subject_names_with_weight and then crs0290 and crs0291. crs0294 came at last because it has in common subjects with low weight from target_subject_names_with_weight
+so top_courses = ['course with id=crs0293', 'course with id=crs0290', 'course with id=crs0291', 'course with id=crs0294']
+
+licence, master, doctorat, professionnelle, bac, baccalauréat, BTS, b
+
+licence 

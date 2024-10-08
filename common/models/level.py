@@ -4,13 +4,13 @@ from . import db
 
 @dataclass
 class Level(db.Model):
-    "Niveau éducatif (2nd, 1ère, Terminale, Bac, L1, L2, Licence, Master 1, Master 2, Doctorat, Bts, Dut, CPGE etc.)"
+    "level of study corresponding to the baccalaureate level (Bac+1, Bac+2, etc) and the degree level (DUT, BTS, License, Master, etc.)"
     __tablename__ = 'level'
     __table_args__ = {'extend_existing': True} 
 
-    id = db.Column(db.String(8), primary_key=True)
-    degree_id = db.Column(db.String(8), db.ForeignKey('degree.id'), nullable=False)
-    bac_id = db.Column(db.String(8), db.ForeignKey('bac.id'), nullable=False)
+    id = db.Column(db.String(8), primary_key=True) # id is in the form of lev0001, lev0002, lev0003, etc
+    degree_id = db.Column(db.String(8), db.ForeignKey('degree.id'), nullable=False) #  deg00004 =>French Baccalaureate, deg00005 => BTS, deg00006 => DUT … deg00008=>Licence, deg00009=>Master
+    bac_id = db.Column(db.String(8), db.ForeignKey('bac.id'), nullable=False) # bac00001 => Bac-3, bac00002 => Bac-2, bac00003 => Bac-1, bac00004 => Bac+1, bac00005 => Bac+2, bac00006 => Bac+3, bac00007 => Bac+4, bac00008 => Bac+5
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)

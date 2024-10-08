@@ -12,6 +12,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     reference = db.Column(db.String(255), nullable=True)
     street = db.Column(db.String(255), nullable=True)
+    address = db.Column(db.String(255), nullable=True)
     postal_code = db.Column(db.String(10), nullable=True) 
     city = db.Column(db.String(35), nullable=True)#2
     description = db.Column(db.String(2500), nullable=True)#2

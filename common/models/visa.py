@@ -10,7 +10,6 @@ class Visa(db.Model):
     __table_args__ = {'extend_existing': True} 
 
     id = db.Column(db.String(8), primary_key=True)
-    external_id = db.Column(db.Integer, autoincrement=True)
     name = db.Column(db.String(255), nullable=False)
     default = db.Column(db.Boolean, nullable=False)
     country_id = db.Column(db.Integer, db.ForeignKey('countries.id'), nullable=False)

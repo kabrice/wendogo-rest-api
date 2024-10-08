@@ -4,10 +4,11 @@ from . import db
 
 @dataclass
 class LevelValue(db.Model):
-    """Différentes valeurs possibles (Physique, Chimie) pour un niveau d'étude (L3, M1, M2, Doctorat, etc.)"""
+    """Différents domaines d'études possible (Physique, Chimie, Action et communication commerciales, Biologie moléculaire, etc.) existant en base de données"""    
 
     __tablename__ = 'level_value'
     __table_args__ = {'extend_existing': True} 
+    cache_ok = True
 
     id = db.Column(db.String(8), primary_key=True)
     code = db.Column(db.String(15), nullable=False)
@@ -18,5 +19,5 @@ class LevelValue(db.Model):
     updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
     def as_dict(self):
-        excluded_fields = ['id', 'created_at', 'updated_at']
+        excluded_fields = ['code', 'created_at', 'updated_at','created_by', 'updated_by']
         return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name not in excluded_fields}

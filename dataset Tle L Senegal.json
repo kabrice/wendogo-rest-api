@@ -1,0 +1,1959 @@
+{
+  "lastname": "Diop",
+  "firstname": "Amina",
+  "phone": "Jy0f86pd",
+  "email": "amina.diop@example.com",
+  "blankYearRepetitionNumber": 0,
+  "canJustifyOtherLanguage": false,
+  "canProveWorkExperience": false,
+  "classRepetitionNumber": 0,
+  "hasWonAward": false,
+  "hasWorkExperience": false,
+  "disable": false,
+  "isFrancophone": true,
+  "isFrancophoneCountry": true,
+  "lead_status_id": "lst00001",
+  "phoneNumberFormatted": {
+    "name": "+221771444567",
+    "validated": true
+},
+"visaTypeSelectedId": "vis00001",
+"selectedOtherLanguageLevel": 40,
+"selectedOtherSpokenLanguage": {
+    "id": "spl00035",
+    "name": "Allemand",
+    "validated": true
+},
+"schoolLevelSelected": "Lycée",
+"selectedCountry": {
+    "default": false,
+    "id": 195,
+    "iso2": "SN",
+    "most_popular_spoken_language_id": "spl00002",
+    "name": "Sénégal",
+    "validated": true
+},
+  "birthDate": {
+    "date": "20/06/2004",
+    "validated": true
+  },
+  "nationality": {
+    "name": "Sénégalaise",
+    "validated": true
+  },
+  "country": "SN",
+  "address": {
+    "name": "Rue 456, Saint-Louis",
+    "validated": true
+  },
+  "addressName": {
+    "name": "Carrefour Ceper",
+    "validated": true
+},
+"alreadyTraveledToFrance": false,
+  "salutation": "Mademoiselle",
+"hsLevelSelected": "deg00003",
+"degreeSelected": {
+  "id": "deg00003",
+  "name": "Baccalauréat Littéraire",
+  "validated": true
+},
+  "degreeExactNameValue": "Baccalauréat L",
+  "selectedSchoolYear3": {
+    "id": "schy0073",
+    "name": "2023",
+    "validated": true
+  },
+  "programDomainObj": {
+    "id": "lvv0020",
+    "name": "Lettres et Sciences Humaines"
+  },
+  "mainSubjects": [
+    {
+      "id": "suj0369",
+      "name": "Philosophie",
+      "priority": 1
+    },
+    {
+      "id": "suj0379",
+      "name": "Littérature",
+      "priority": 2
+    },
+    {
+      "id": "suj0380",
+      "name": "Histoire-Géographie",
+      "priority": 3
+    }
+  ],
+  "selectedFrenchLevel": 90,
+  "selectedEnglishLevel": 70,
+  "couldPayTuition": false,
+  "haveDoneFrenchTest": true,
+  "canJustifyEnglishLevel": true,
+  "isResult3Available": true,
+  "academicYearHeadDetails3": {
+    "subjectWeightSystem": {
+      "name": "Coefficient",
+      "id": "sws002",
+      "validated": true
+    },
+    "markSystem": {
+      "id": "crs0003",
+      "name": "Sur 20",
+      "validated": true
+    },
+    "schoolName": "Lycée Faidherbe",
+    "city": {
+      "country_id": 221,
+      "default": false,
+      "id": 2001,
+      "name": "Saint-Louis"
+    },
+    "country": {
+      "default": false,
+      "id": 221,
+      "iso2": "SN",
+      "name": "Sénégal",
+      "validated": true
+    },
+    "spokenLanguage": {
+      "name": "Français",
+      "id": "spl00002"
+    },
+    "academicYearOrganization": {
+      "name": "Trimestre",
+      "id": "ayo00001",
+      "validated": true
+    }
+  },
+  "reportCard3": [
+    [
+      {
+        "reference": 1,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Philosophie",
+          "validated": true
+        },
+        "weight": {
+          "value": "7",
+          "validated": true
+        },
+        "mark": {
+          "value": "14",
+          "valueIn20": "14",
+          "validated": true
+        },
+        "rank": {
+          "value": "5",
+          "validated": true
+        }
+      },
+      {
+        "reference": 2,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Littérature",
+          "validated": true
+        },
+        "weight": {
+          "value": "6",
+          "validated": true
+        },
+        "mark": {
+          "value": "15",
+          "valueIn20": "15",
+          "validated": true
+        },
+        "rank": {
+          "value": "3",
+          "validated": true
+        }
+      },
+      {
+        "reference": 3,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Histoire-Géographie",
+          "validated": true
+        },
+        "weight": {
+          "value": "5",
+          "validated": true
+        },
+        "mark": {
+          "value": "16",
+          "valueIn20": "16",
+          "validated": true
+        },
+        "rank": {
+          "value": "2",
+          "validated": true
+        }
+      },
+      {
+        "reference": 4,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Français",
+          "validated": true
+        },
+        "weight": {
+          "value": "6",
+          "validated": true
+        },
+        "mark": {
+          "value": "17",
+          "valueIn20": "17",
+          "validated": true
+        },
+        "rank": {
+          "value": "1",
+          "validated": true
+        }
+      },
+      {
+        "reference": 5,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Anglais",
+          "validated": true
+        },
+        "weight": {
+          "value": "4",
+          "validated": true
+        },
+        "mark": {
+          "value": "13",
+          "valueIn20": "13",
+          "validated": true
+        },
+        "rank": {
+          "value": "7",
+          "validated": true
+        }
+      },
+      {
+        "reference": 6,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Espagnol",
+          "validated": true
+        },
+        "weight": {
+          "value": "3",
+          "validated": true
+        },
+        "mark": {
+          "value": "14",
+          "valueIn20": "14",
+          "validated": true
+        },
+        "rank": {
+          "value": "6",
+          "validated": true
+        }
+      },
+      {
+        "reference": 7,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Mathématiques",
+          "validated": true
+        },
+        "weight": {
+          "value": "2",
+          "validated": true
+        },
+        "mark": {
+          "value": "10",
+          "valueIn20": "10",
+          "validated": true
+        },
+        "rank": {
+          "value": "12",
+          "validated": true
+        }
+      },
+      {
+        "reference": 8,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Sciences Physiques",
+          "validated": true
+        },
+        "weight": {
+          "value": "2",
+          "validated": true
+        },
+        "mark": {
+          "value": "9",
+          "valueIn20": "9",
+          "validated": true
+        },
+        "rank": {
+          "value": "13",
+          "validated": true
+        }
+      },
+      {
+        "reference": 9,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Éducation Physique",
+          "validated": true
+        },
+        "weight": {
+          "value": "1",
+          "validated": true
+        },
+        "mark": {
+          "value": "15",
+          "valueIn20": "15",
+          "validated": true
+        },
+        "rank": {
+          "value": "4",
+          "validated": true
+        }
+      },
+      {
+        "reference": 10,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Philosophie Morale",
+          "validated": true
+        },
+        "weight": {
+          "value": "3",
+          "validated": true
+        },
+        "mark": {
+          "value": "14",
+          "valueIn20": "14",
+          "validated": true
+        },
+        "rank": {
+          "value": "6",
+          "validated": true
+        }
+      },
+      {
+        "reference": 11,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Arts",
+          "validated": true
+        },
+        "weight": {
+          "value": "2",
+          "validated": true
+        },
+        "mark": {
+          "value": "16",
+          "valueIn20": "16",
+          "validated": true
+        },
+        "rank": {
+          "value": "3",
+          "validated": true
+        }
+      },
+      {
+        "reference": 12,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Éducation Civique",
+          "validated": true
+        },
+        "weight": {
+          "value": "1",
+          "validated": true
+        },
+        "mark": {
+          "value": "13",
+          "valueIn20": "13",
+          "validated": true
+        },
+        "rank": {
+          "value": "7",
+          "validated": true
+        }
+      }
+    ],
+    [
+      {
+        "reference": 13,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Philosophie",
+          "validated": true
+        },
+        "weight": {
+          "value": "7",
+          "validated": true
+        },
+        "mark": {
+          "value": "15",
+          "valueIn20": "15",
+          "validated": true
+        },
+        "rank": {
+          "value": "4",
+          "validated": true
+        }
+      },
+      {
+        "reference": 14,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Littérature",
+          "validated": true
+        },
+        "weight": {
+          "value": "6",
+          "validated": true
+        },
+        "mark": {
+          "value": "16",
+          "valueIn20": "16",
+          "validated": true
+        },
+        "rank": {
+          "value": "2",
+          "validated": true
+        }
+      },
+      {
+        "reference": 15,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Histoire-Géographie",
+          "validated": true
+        },
+        "weight": {
+          "value": "5",
+          "validated": true
+        },
+        "mark": {
+          "value": "17",
+          "valueIn20": "17",
+          "validated": true
+        },
+        "rank": {
+          "value": "1",
+          "validated": true
+        }
+      },
+      {
+        "reference": 16,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Français",
+          "validated": true
+        },
+        "weight": {
+          "value": "6",
+          "validated": true
+        },
+        "mark": {
+          "value": "18",
+          "valueIn20": "18",
+          "validated": true
+        },
+        "rank": {
+          "value": "1",
+          "validated": true
+        }
+      },
+      {
+        "reference": 17,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Anglais",
+          "validated": true
+        },
+        "weight": {
+          "value": "4",
+          "validated": true
+        },
+        "mark": {
+          "value": "14",
+          "valueIn20": "14",
+          "validated": true
+        },
+        "rank": {
+          "value": "6",
+          "validated": true
+        }
+      },
+      {
+        "reference": 18,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Espagnol",
+          "validated": true
+        },
+        "weight": {
+          "value": "3",
+          "validated": true
+        },
+        "mark": {
+          "value": "15",
+          "valueIn20": "15",
+          "validated": true
+        },
+        "rank": {
+          "value": "5",
+          "validated": true
+        }
+      },
+      {
+        "reference": 19,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Mathématiques",
+          "validated": true
+        },
+        "weight": {
+          "value": "2",
+          "validated": true
+        },
+        "mark": {
+          "value": "11",
+          "valueIn20": "11",
+          "validated": true
+        },
+        "rank": {
+          "value": "10",
+          "validated": true
+        }
+      },
+      {
+        "reference": 20,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Sciences Physiques",
+          "validated": true
+        },
+        "weight": {
+          "value": "2",
+          "validated": true
+        },
+        "mark": {
+          "value": "10",
+          "valueIn20": "10",
+          "validated": true
+        },
+        "rank": {
+          "value": "11",
+          "validated": true
+        }
+      },
+      {
+        "reference": 21,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Éducation Physique",
+          "validated": true
+        },
+        "weight": {
+          "value": "1",
+          "validated": true
+        },
+        "mark": {
+          "value": "16",
+          "valueIn20": "16",
+          "validated": true
+        },
+        "rank": {
+          "value": "3",
+          "validated": true
+        }
+      },
+      {
+        "reference": 22,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Philosophie Morale",
+          "validated": true
+        },
+        "weight": {
+          "value": "3",
+          "validated": true
+        },
+        "mark": {
+          "value": "15",
+          "valueIn20": "15",
+          "validated": true
+        },
+        "rank": {
+          "value": "5",
+          "validated": true
+        }
+      },
+      {
+        "reference": 23,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Arts",
+          "validated": true
+        },
+        "weight": {
+          "value": "2",
+          "validated": true
+        },
+        "mark": {
+          "value": "17",
+          "valueIn20": "17",
+          "validated": true
+        },
+        "rank": {
+          "value": "2",
+          "validated": true
+        }
+      },
+      {
+        "reference": 24,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Éducation Civique",
+          "validated": true
+        },
+        "weight": {
+          "value": "1",
+          "validated": true
+        },
+        "mark": {
+          "value": "14",
+          "valueIn20": "14",
+          "validated": true
+        },
+        "rank": {
+          "value": "6",
+          "validated": true
+        }
+      }
+    ],
+    [
+      {
+        "reference": 25,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Philosophie",
+          "validated": true
+        },
+        "weight": {
+          "value": "7",
+          "validated": true
+        },
+        "mark": {
+          "value": "16",
+          "valueIn20": "16",
+          "validated": true
+        },
+        "rank": {
+          "value": "3",
+          "validated": true
+        }
+      },
+      {
+        "reference": 26,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Littérature",
+          "validated": true
+        },
+        "weight": {
+          "value": "6",
+          "validated": true
+        },
+        "mark": {
+          "value": "17",
+          "valueIn20": "17",
+          "validated": true
+        },
+        "rank": {
+          "value": "1",
+          "validated": true
+        }
+      },
+      {
+        "reference": 27,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Histoire-Géographie",
+          "validated": true
+        },
+        "weight": {
+          "value": "5",
+          "validated": true
+        },
+        "mark": {
+          "value": "18",
+          "valueIn20": "18",
+          "validated": true
+        },
+        "rank": {
+          "value": "1",
+          "validated": true
+        }
+      },
+      {
+        "reference": 28,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Français",
+          "validated": true
+        },
+        "weight": {
+          "value": "6",
+          "validated": true
+        },
+        "mark": {
+          "value": "19",
+          "valueIn20": "19",
+          "validated": true
+        },
+        "rank": {
+          "value": "1",
+          "validated": true
+        }
+      },
+      {
+        "reference": 29,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Anglais",
+          "validated": true
+        },
+        "weight": {
+          "value": "4",
+          "validated": true
+        },
+        "mark": {
+          "value": "15",
+          "valueIn20": "15",
+          "validated": true
+        },
+        "rank": {
+          "value": "5",
+          "validated": true
+        }
+      },
+      {
+        "reference": 30,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Espagnol",
+          "validated": true
+        },
+        "weight": {
+          "value": "3",
+          "validated": true
+        },
+        "mark": {
+          "value": "16",
+          "valueIn20": "16",
+          "validated": true
+        },
+        "rank": {
+          "value": "4",
+          "validated": true
+        }
+      },
+      {
+        "reference": 31,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Mathématiques",
+          "validated": true
+        },
+        "weight": {
+          "value": "2",
+          "validated": true
+        },
+        "mark": {
+          "value": "12",
+          "valueIn20": "12",
+          "validated": true
+        },
+        "rank": {
+          "value": "9",
+          "validated": true
+        }
+      },
+      {
+        "reference": 32,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Sciences Physiques",
+          "validated": true
+        },
+        "weight": {
+          "value": "2",
+          "validated": true
+        },
+        "mark": {
+          "value": "11",
+          "valueIn20": "11",
+          "validated": true
+        },
+        "rank": {
+          "value": "10",
+          "validated": true
+        }
+      },
+      {
+        "reference": 33,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Éducation Physique",
+          "validated": true
+        },
+        "weight": {
+          "value": "1",
+          "validated": true
+        },
+        "mark": {
+          "value": "17",
+          "valueIn20": "17",
+          "validated": true
+        },
+        "rank": {
+          "value": "2",
+          "validated": true
+        }
+      },
+      {
+        "reference": 34,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Philosophie Morale",
+          "validated": true
+        },
+        "weight": {
+          "value": "3",
+          "validated": true
+        },
+        "mark": {
+          "value": "16",
+          "valueIn20": "16",
+          "validated": true
+        },
+        "rank": {
+          "value": "4",
+          "validated": true
+        }
+      },
+      {
+        "reference": 35,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Arts",
+          "validated": true
+        },
+        "weight": {
+          "value": "2",
+          "validated": true
+        },
+        "mark": {
+          "value": "18",
+          "valueIn20": "18",
+          "validated": true
+        },
+        "rank": {
+          "value": "1",
+          "validated": true
+        }
+      },
+      {
+        "reference": 36,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Éducation Civique",
+          "validated": true
+        },
+        "weight": {
+          "value": "1",
+          "validated": true
+        },
+        "mark": {
+          "value": "15",
+          "valueIn20": "15",
+          "validated": true
+        },
+        "rank": {
+          "value": "5",
+          "validated": true
+        }
+      }
+    ]
+  ],
+  "isResult2Available": true,
+  "selectedSchoolYear2": {
+    "id": "schy0072",
+    "name": "2022",
+    "validated": true
+  },
+  "academicYearHeadDetails2": {
+    "subjectWeightSystem": {
+      "name": "Coefficient",
+      "id": "sws002",
+      "validated": true
+    },
+    "markSystem": {
+      "id": "crs0003",
+      "name": "Sur 20",
+      "validated": true
+    },
+    "schoolName": "Lycée Faidherbe",
+    "city": {
+      "country_id": 221,
+      "default": false,
+      "id": 2001,
+      "name": "Saint-Louis"
+    },
+    "country": {
+      "default": false,
+      "id": 221,
+      "iso2": "SN",
+      "name": "Sénégal",
+      "validated": true
+    },
+    "spokenLanguage": {
+      "name": "Français",
+      "id": "spl00002"
+    },
+    "academicYearOrganization": {
+      "name": "Trimestre",
+      "id": "ayo00001",
+      "validated": true
+    }
+  },
+  "reportCard2": [ 
+    [
+      {
+        "reference": 1,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Philosophie",
+          "validated": true
+        },
+        "weight": {
+          "value": "6",
+          "validated": true
+        },
+        "mark": {
+          "value": "13",
+          "valueIn20": "13",
+          "validated": true
+        },
+        "rank": {
+          "value": "7",
+          "validated": true
+        }
+      },
+      {
+        "reference": 2,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Littérature",
+          "validated": true
+        },
+        "weight": {
+          "value": "5",
+          "validated": true
+        },
+        "mark": {
+          "value": "14",
+          "valueIn20": "14",
+          "validated": true
+        },
+        "rank": {
+          "value": "5",
+          "validated": true
+        }
+      },
+      {
+        "reference": 3,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Histoire-Géographie",
+          "validated": true
+        },
+        "weight": {
+          "value": "5",
+          "validated": true
+        },
+        "mark": {
+          "value": "15",
+          "valueIn20": "15",
+          "validated": true
+        },
+        "rank": {
+          "value": "4",
+          "validated": true
+        }
+      },
+      {
+        "reference": 4,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Français",
+          "validated": true
+        },
+        "weight": {
+          "value": "5",
+          "validated": true
+        },
+        "mark": {
+          "value": "16",
+          "valueIn20": "16",
+          "validated": true
+        },
+        "rank": {
+          "value": "2",
+          "validated": true
+        }
+      },
+      {
+        "reference": 5,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Anglais",
+          "validated": true
+        },
+        "weight": {
+          "value": "3",
+          "validated": true
+        },
+        "mark": {
+          "value": "12",
+          "valueIn20": "12",
+          "validated": true
+        },
+        "rank": {
+          "value": "9",
+          "validated": true
+        }
+      },
+      {
+        "reference": 6,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Espagnol",
+          "validated": true
+        },
+        "weight": {
+          "value": "2",
+          "validated": true
+        },
+        "mark": {
+          "value": "13",
+          "valueIn20": "13",
+          "validated": true
+        },
+        "rank": {
+          "value": "7",
+          "validated": true
+        }
+      },
+      {
+        "reference": 7,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Mathématiques",
+          "validated": true
+        },
+        "weight": {
+          "value": "2",
+          "validated": true
+        },
+        "mark": {
+          "value": "9",
+          "valueIn20": "9",
+          "validated": true
+        },
+        "rank": {
+          "value": "12",
+          "validated": true
+        }
+      },
+      {
+        "reference": 8,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Sciences Physiques",
+          "validated": true
+        },
+        "weight": {
+          "value": "2",
+          "validated": true
+        },
+        "mark": {
+          "value": "8",
+          "valueIn20": "8",
+          "validated": true
+        },
+        "rank": {
+          "value": "13",
+          "validated": true
+        }
+      },
+      {
+        "reference": 9,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Éducation Physique",
+          "validated": true
+        },
+        "weight": {
+          "value": "1",
+          "validated": true
+        },
+        "mark": {
+          "value": "14",
+          "valueIn20": "14",
+          "validated": true
+        },
+        "rank": {
+          "value": "6",
+          "validated": true
+        }
+      },
+      {
+        "reference": 10,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Arts",
+          "validated": true
+        },
+        "weight": {
+          "value": "2",
+          "validated": true
+        },
+        "mark": {
+          "value": "15",
+          "valueIn20": "15",
+          "validated": true
+        },
+        "rank": {
+          "value": "5",
+          "validated": true
+        }
+      }
+    ], 
+    [
+      {
+        "reference": 11,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Philosophie",
+          "validated": true
+        },
+        "weight": {
+          "value": "6",
+          "validated": true
+        },
+        "mark": {
+          "value": "14",
+          "valueIn20": "14",
+          "validated": true
+        },
+        "rank": {
+          "value": "6",
+          "validated": true
+        }
+      }
+    ], 
+    [
+      {
+        "reference": 21,
+        "is_baccalaureat": false,
+        "is_practical_work": false,
+        "label": {
+          "value": "Philosophie",
+          "validated": true
+        },
+        "weight": {
+          "value": "6",
+          "validated": true
+        },
+        "mark": {
+          "value": "15",
+          "valueIn20": "15",
+          "validated": true
+        },
+        "rank": {
+          "value": "5",
+          "validated": true
+        }
+      } 
+    ]
+  ],
+  "isResult1Available": true,
+  "selectedSchoolYear1": {
+    "id": "schy0071",
+    "name": "2021",
+    "validated": true
+  },
+  "academicYearHeadDetails1": {
+    "subjectWeightSystem": {
+      "name": "Coefficient",
+      "id": "sws002",
+      "validated": true
+    },
+    "markSystem": {
+      "id": "crs0003",
+      "name": "Sur 20",
+      "validated": true
+    },
+    "schoolName": "Lycée Faidherbe",
+    "city": {
+      "country_id": 221,
+      "default": false,
+      "id": 2001,
+      "name": "Saint-Louis"
+    },
+    "country": {
+      "default": false,
+      "id": 221,
+      "iso2": "SN",
+      "name": "Sénégal",
+      "validated": true
+    },
+    "spokenLanguage": {
+      "name": "Français",
+      "id": "spl00002"
+    },
+    "academicYearOrganization": {
+      "name": "Trimestre",
+      "id": "ayo00001",
+      "validated": true
+    }
+  },
+"reportCard1": [ 
+  [
+    {
+      "reference": 1,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Français",
+        "validated": true
+      },
+      "weight": {
+        "value": "5",
+        "validated": true
+      },
+      "mark": {
+        "value": "13",
+        "valueIn20": "13",
+        "validated": true
+      },
+      "rank": {
+        "value": "8",
+        "validated": true
+      }
+    },
+    {
+      "reference": 2,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Histoire-Géographie",
+        "validated": true
+      },
+      "weight": {
+        "value": "4",
+        "validated": true
+      },
+      "mark": {
+        "value": "14",
+        "valueIn20": "14",
+        "validated": true
+      },
+      "rank": {
+        "value": "6",
+        "validated": true
+      }
+    },
+    {
+      "reference": 3,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Anglais",
+        "validated": true
+      },
+      "weight": {
+        "value": "3",
+        "validated": true
+      },
+      "mark": {
+        "value": "12",
+        "valueIn20": "12",
+        "validated": true
+      },
+      "rank": {
+        "value": "10",
+        "validated": true
+      }
+    },
+    {
+      "reference": 4,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Espagnol",
+        "validated": true
+      },
+      "weight": {
+        "value": "2",
+        "validated": true
+      },
+      "mark": {
+        "value": "13",
+        "valueIn20": "13",
+        "validated": true
+      },
+      "rank": {
+        "value": "9",
+        "validated": true
+      }
+    },
+    {
+      "reference": 5,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Mathématiques",
+        "validated": true
+      },
+      "weight": {
+        "value": "3",
+        "validated": true
+      },
+      "mark": {
+        "value": "11",
+        "valueIn20": "11",
+        "validated": true
+      },
+      "rank": {
+        "value": "11",
+        "validated": true
+      }
+    },
+    {
+      "reference": 6,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Sciences Physiques",
+        "validated": true
+      },
+      "weight": {
+        "value": "3",
+        "validated": true
+      },
+      "mark": {
+        "value": "10",
+        "valueIn20": "10",
+        "validated": true
+      },
+      "rank": {
+        "value": "12",
+        "validated": true
+      }
+    },
+    {
+      "reference": 7,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Sciences de la Vie et de la Terre (SVT)",
+        "validated": true
+      },
+      "weight": {
+        "value": "3",
+        "validated": true
+      },
+      "mark": {
+        "value": "12",
+        "valueIn20": "12",
+        "validated": true
+      },
+      "rank": {
+        "value": "10",
+        "validated": true
+      }
+    },
+    {
+      "reference": 8,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Éducation Physique",
+        "validated": true
+      },
+      "weight": {
+        "value": "1",
+        "validated": true
+      },
+      "mark": {
+        "value": "13",
+        "valueIn20": "13",
+        "validated": true
+      },
+      "rank": {
+        "value": "8",
+        "validated": true
+      }
+    },
+    {
+      "reference": 9,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Arts Plastiques",
+        "validated": true
+      },
+      "weight": {
+        "value": "2",
+        "validated": true
+      },
+      "mark": {
+        "value": "14",
+        "valueIn20": "14",
+        "validated": true
+      },
+      "rank": {
+        "value": "7",
+        "validated": true
+      }
+    },
+    {
+      "reference": 10,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Éducation Civique",
+        "validated": true
+      },
+      "weight": {
+        "value": "1",
+        "validated": true
+      },
+      "mark": {
+        "value": "12",
+        "valueIn20": "12",
+        "validated": true
+      },
+      "rank": {
+        "value": "10",
+        "validated": true
+      }
+    }
+  ], 
+  [
+    {
+      "reference": 11,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Français",
+        "validated": true
+      },
+      "weight": {
+        "value": "5",
+        "validated": true
+      },
+      "mark": {
+        "value": "14",
+        "valueIn20": "14",
+        "validated": true
+      },
+      "rank": {
+        "value": "6",
+        "validated": true
+      }
+    },
+    {
+      "reference": 12,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Histoire-Géographie",
+        "validated": true
+      },
+      "weight": {
+        "value": "4",
+        "validated": true
+      },
+      "mark": {
+        "value": "15",
+        "valueIn20": "15",
+        "validated": true
+      },
+      "rank": {
+        "value": "5",
+        "validated": true
+      }
+    },
+    {
+      "reference": 13,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Anglais",
+        "validated": true
+      },
+      "weight": {
+        "value": "3",
+        "validated": true
+      },
+      "mark": {
+        "value": "13",
+        "valueIn20": "13",
+        "validated": true
+      },
+      "rank": {
+        "value": "8",
+        "validated": true
+      }
+    },
+    {
+      "reference": 14,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Espagnol",
+        "validated": true
+      },
+      "weight": {
+        "value": "2",
+        "validated": true
+      },
+      "mark": {
+        "value": "14",
+        "valueIn20": "14",
+        "validated": true
+      },
+      "rank": {
+        "value": "7",
+        "validated": true
+      }
+    },
+    {
+      "reference": 15,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Mathématiques",
+        "validated": true
+      },
+      "weight": {
+        "value": "3",
+        "validated": true
+      },
+      "mark": {
+        "value": "12",
+        "valueIn20": "12",
+        "validated": true
+      },
+      "rank": {
+        "value": "9",
+        "validated": true
+      }
+    },
+    {
+      "reference": 16,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Sciences Physiques",
+        "validated": true
+      },
+      "weight": {
+        "value": "3",
+        "validated": true
+      },
+      "mark": {
+        "value": "11",
+        "valueIn20": "11",
+        "validated": true
+      },
+      "rank": {
+        "value": "10",
+        "validated": true
+      }
+    },
+    {
+      "reference": 17,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Sciences de la Vie et de la Terre (SVT)",
+        "validated": true
+      },
+      "weight": {
+        "value": "3",
+        "validated": true
+      },
+      "mark": {
+        "value": "13",
+        "valueIn20": "13",
+        "validated": true
+      },
+      "rank": {
+        "value": "8",
+        "validated": true
+      }
+    },
+    {
+      "reference": 18,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Éducation Physique",
+        "validated": true
+      },
+      "weight": {
+        "value": "1",
+        "validated": true
+      },
+      "mark": {
+        "value": "14",
+        "valueIn20": "14",
+        "validated": true
+      },
+      "rank": {
+        "value": "7",
+        "validated": true
+      }
+    },
+    {
+      "reference": 19,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Arts Plastiques",
+        "validated": true
+      },
+      "weight": {
+        "value": "2",
+        "validated": true
+      },
+      "mark": {
+        "value": "15",
+        "valueIn20": "15",
+        "validated": true
+      },
+      "rank": {
+        "value": "6",
+        "validated": true
+      }
+    },
+    {
+      "reference": 20,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Éducation Civique",
+        "validated": true
+      },
+      "weight": {
+        "value": "1",
+        "validated": true
+      },
+      "mark": {
+        "value": "13",
+        "valueIn20": "13",
+        "validated": true
+      },
+      "rank": {
+        "value": "8",
+        "validated": true
+      }
+    }
+  ],
+  // Trimestre 3 - Seconde Littéraire
+  [
+    {
+      "reference": 21,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Français",
+        "validated": true
+      },
+      "weight": {
+        "value": "5",
+        "validated": true
+      },
+      "mark": {
+        "value": "15",
+        "valueIn20": "15",
+        "validated": true
+      },
+      "rank": {
+        "value": "5",
+        "validated": true
+      }
+    },
+    {
+      "reference": 22,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Histoire-Géographie",
+        "validated": true
+      },
+      "weight": {
+        "value": "4",
+        "validated": true
+      },
+      "mark": {
+        "value": "16",
+        "valueIn20": "16",
+        "validated": true
+      },
+      "rank": {
+        "value": "4",
+        "validated": true
+      }
+    },
+    {
+      "reference": 23,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Anglais",
+        "validated": true
+      },
+      "weight": {
+        "value": "3",
+        "validated": true
+      },
+      "mark": {
+        "value": "14",
+        "valueIn20": "14",
+        "validated": true
+      },
+      "rank": {
+        "value": "7",
+        "validated": true
+      }
+    },
+    {
+      "reference": 24,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Espagnol",
+        "validated": true
+      },
+      "weight": {
+        "value": "2",
+        "validated": true
+      },
+      "mark": {
+        "value": "15",
+        "valueIn20": "15",
+        "validated": true
+      },
+      "rank": {
+        "value": "6",
+        "validated": true
+      }
+    },
+    {
+      "reference": 25,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Mathématiques",
+        "validated": true
+      },
+      "weight": {
+        "value": "3",
+        "validated": true
+      },
+      "mark": {
+        "value": "13",
+        "valueIn20": "13",
+        "validated": true
+      },
+      "rank": {
+        "value": "8",
+        "validated": true
+      }
+    },
+    {
+      "reference": 26,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Sciences Physiques",
+        "validated": true
+      },
+      "weight": {
+        "value": "3",
+        "validated": true
+      },
+      "mark": {
+        "value": "12",
+        "valueIn20": "12",
+        "validated": true
+      },
+      "rank": {
+        "value": "9",
+        "validated": true
+      }
+    },
+    {
+      "reference": 27,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Sciences de la Vie et de la Terre (SVT)",
+        "validated": true
+      },
+      "weight": {
+        "value": "3",
+        "validated": true
+      },
+      "mark": {
+        "value": "14",
+        "valueIn20": "14",
+        "validated": true
+      },
+      "rank": {
+        "value": "7",
+        "validated": true
+      }
+    },
+    {
+      "reference": 28,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Éducation Physique",
+        "validated": true
+      },
+      "weight": {
+        "value": "1",
+        "validated": true
+      },
+      "mark": {
+        "value": "15",
+        "valueIn20": "15",
+        "validated": true
+      },
+      "rank": {
+        "value": "6",
+        "validated": true
+      }
+    },
+    {
+      "reference": 29,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Arts Plastiques",
+        "validated": true
+      },
+      "weight": {
+        "value": "2",
+        "validated": true
+      },
+      "mark": {
+        "value": "16",
+        "valueIn20": "16",
+        "validated": true
+      },
+      "rank": {
+        "value": "5",
+        "validated": true
+      }
+    },
+    {
+      "reference": 30,
+      "is_baccalaureat": false,
+      "is_practical_work": false,
+      "label": {
+        "value": "Éducation Civique",
+        "validated": true
+      },
+      "weight": {
+        "value": "1",
+        "validated": true
+      },
+      "mark": {
+        "value": "14",
+        "valueIn20": "14",
+        "validated": true
+      },
+      "rank": {
+        "value": "7",
+        "validated": true
+      }
+    }
+  ]
+]
+,
+  "hasPassport": true,
+  "passportDetails": {
+    "startDate": "10/05/2020",
+    "endDate": "10/05/2030",
+    "validated": true
+  }
+}

@@ -17,7 +17,8 @@ def init_routes(app):
         db.session.add(new_lead)
         db.session.commit()
         return jsonify({"status": True, "message": "lead has been added"})
-        
+    
+
 
 
    

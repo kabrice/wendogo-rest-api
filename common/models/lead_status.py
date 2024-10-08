@@ -9,7 +9,6 @@ class LeadStatus(db.Model):
     __table_args__ = {'extend_existing': True} 
 
     id = db.Column(db.String(8), primary_key=True)
-    external_id = db.Column(db.Integer, autoincrement=True)
     value = db.Column(db.String(255), nullable=False)
     description = db.Column(db.String(255), nullable=False)
     order = db.Column(db.Integer, nullable=False)

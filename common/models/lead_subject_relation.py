@@ -4,20 +4,22 @@ from . import db
 
 @dataclass
 class LeadSubjectRelation(db.Model):
-    """The main subjects done by the lead during a school year (represented here by lead_level_relation_id). Generally, we have 3 main subjects."""
+    """les 3 matières choisies par l'utilisateur au début de la simulation"""
     __tablename__ = 'lead_subject_relation'
     __table_args__ = {'extend_existing': True} 
 
     id = db.Column(db.Integer, primary_key=True)
-    lead_level_relation_id = db.Column(db.Integer, db.ForeignKey('lead_level_relation.id'), nullable=False)
-    external_subject_id = db.Column(db.Integer, db.ForeignKey('external_subject.id'), nullable=False) # Soit external_subject_id soit subject_id, jamais les deux à la fois
+    lead_id = db.Column(db.Integer, db.ForeignKey('lead.id'), nullable=False)
     subject_id = db.Column(db.String(8), db.ForeignKey('subject.id'), nullable=False)
+    #is_pratical_subject = db.Column(db.Boolean, nullable=False)
     priority = db.Column(db.Integer, nullable=False) # 1, 2, 3
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
+    subject = db.relationship('Subject', backref='lead_subject_relation')
+
     def as_dict(self):
-        excluded_fields = ['id', 'created_at', 'updated_at']
+        excluded_fields = ['created_at', 'updated_at', 'created_by', 'updated_by']
         return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name not in excluded_fields}    
