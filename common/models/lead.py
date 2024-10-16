@@ -25,6 +25,7 @@ class Lead(db.Model):
     can_prove_spoken_language_level = db.Column(db.Boolean, nullable=True) 
     french_travel_start_date = db.Column(db.Date, nullable=True)
     french_travel_end_date = db.Column(db.Date, nullable=True)
+    evaluation_score = db.Column(db.Float, nullable=True)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)

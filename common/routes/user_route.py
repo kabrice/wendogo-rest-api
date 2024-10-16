@@ -21,6 +21,9 @@ from common.models.traveling import Traveling
 from common.models.course import Course
 from common.models.course_level_relation import CourseLevelRelation
 from common.models.course_subject_relation import CourseSubjectRelation
+from common.models.visa_criteria import VisaCriteria
+from common.models.criteria_type import CriteriaType
+from common.models.visa_criteria_lead_relation import VisaCriteriaLeadRelation
 from common.models.log import Log
 from common.helper import Helper
 from sqlalchemy import text
@@ -30,6 +33,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from collections import defaultdict
 from functools import lru_cache
 import re
+import time
 
 
 def init_routes(app):
@@ -500,7 +504,7 @@ def init_routes(app):
         for subjects in payload[f'reportCard{level}']:
             for subject in subjects:
                 school_term = payload[f'reportCard{level}'].index(subjects) + 1
-                is_baccalaureat = subject['is_baccalaureat']
+                is_baccalaureat = subject['isBaccalaureat']
                 weight = int(subject['weight']['value'])
                 mark_in_20 = float(subject['mark']['valueIn20'])
                 
@@ -529,7 +533,7 @@ def init_routes(app):
                     external_subject_id=external_subjects_map.get(subject['label']['value']),
                     subject_id=existing_subjects_map.get(subject['label']['value']),
                     is_baccalaureat=is_baccalaureat,
-                    is_pratical_subject=subject['is_practical_work'],
+                    is_pratical_subject=subject['isPracticalWork'],
                     weight=weight,
                     mark=subject['mark']['value'],
                     mark_in_20=mark_in_20,
@@ -552,7 +556,7 @@ def init_routes(app):
             report_card.average_mark_in_20 = round(average_mark_in_20, 2)
 
         for term in range(1, 4):
-            if len(school_term_ranks[term]) == len([subject for subjects in payload[f'reportCard{level}'] for subject in subjects if payload[f'reportCard{level}'].index(subjects) + 1 == term and not subject['is_baccalaureat']]):
+            if len(school_term_ranks[term]) == len([subject for subjects in payload[f'reportCard{level}'] for subject in subjects if payload[f'reportCard{level}'].index(subjects) + 1 == term and not subject['isBaccalaureat']]):
                 if len(school_term_ranks[term]) > 0:
                     setattr(report_card, f'school_term{term}_overall_rank', sum(school_term_ranks[term]) / len(school_term_ranks[term]))
 
@@ -625,19 +629,39 @@ def init_routes(app):
         if school_year:
             return school_year.id
         return None
-
+    
+    bac_validation_map = {
+        'bac00010': (['bac00010', 'bac00009', 'bac00008'], 'bac00008', 'bac00010'), # The first element in the tuple is the list of bac_ids to validate, 
+        'bac00009': (['bac00009', 'bac00008', 'bac00007'], 'bac00007', 'bac00009'), # the second element is the start_bac_id, and the third element is the end_bac_id 
+        'bac00008': (['bac00008', 'bac00007', 'bac00006'], 'bac00006', 'bac00008'),
+        'bac00007': (['bac00007', 'bac00006', 'bac00005'], 'bac00005', 'bac00007'),
+        'bac00006': (['bac00006', 'bac00005', 'bac00004'], 'bac00004', 'bac00006'),
+        'bac00005': (['bac00005', 'bac00004'], 'bac00003', 'bac00005'),
+        'bac00004': (['bac00004'], 'bac00002', 'bac00004'),
+        'bac00003': ([], 'bac00001', 'bac00003')
+    }
+    mark_has_progressed_for_2_years_with_no_redoublement = False # This is a global variable to check if the mark has progressed for 2 years with no redoublement
+    mark_has_progressed_for_3_years_with_no_redoublement = False # This is a global variable to check if the mark has progressed for 3 years with no redoublement
+    has_work_experience_of_3_months = False # This is a global variable to check if the lead has a work experience of 3 months
+    has_work_experience_of_6_months = False # This is a global variable to check if the lead has a work experience of 6 months
+    has_work_experience_of_more_than_12_months = False # This is a global variable to check if the lead has a work experience of more than 12 months
     def generate_courses(lead):
         lead_id = lead.id    
         report_cards = ReportCard.query.filter_by(lead_id=lead_id).all()
         report_card_subject_relation = ReportCardSubjectRelation.query.filter(ReportCardSubjectRelation.report_card_id.in_([report_card.id for report_card in report_cards])).all()
         inegible_reasons = check_inegibility_lead(lead, report_cards, report_card_subject_relation)
-        print('==HAH report_card_subject_relation len 🎀🎀 '+str(len(report_card_subject_relation)))
+        #print('==HAH report_card_subject_relation len 🎀🎀 '+str(len(report_card_subject_relation)))
         if inegible_reasons:
             return {'invalid_courses': inegible_reasons}
         else:
+
             valid_courses, invalid_courses = get_courses(lead, report_cards, report_card_subject_relation)
-            print('==HAH Avalid_courses len 🎀🎀 '+str(len(valid_courses)))
-            return {'valid_courses': list(valid_courses), 'invalid_courses': list(invalid_courses)}
+            candidate_profile_conditions = get_candidate_profile_conditions(lead, report_cards, report_card_subject_relation)
+            visa_evaluation, best_conditions, worst_conditions = None, {}, {}
+            if len(candidate_profile_conditions) > 0:
+                visa_evaluation, best_conditions, worst_conditions = evaluation_score(lead, candidate_profile_conditions)
+            #print('==HAH Avalid_courses len 🎀🎀 '+str(len(valid_courses)))
+            return {'valid_courses': list(valid_courses), 'invalid_courses': list(invalid_courses), 'visa_evaluation': visa_evaluation, 'best_conditions': best_conditions, 'worst_conditions': worst_conditions}
         
     
     def check_inegibility_lead(lead, report_cards, report_card_subject_relation):
@@ -650,23 +674,12 @@ def init_routes(app):
                     inegible_reasons.append(validation_result)
 
         def validate_cumulative_mark(start_bac_id, end_bac_id):
-            if cumulative_mark_for_the_completed_years(report_cards, start_bac_id, end_bac_id) < 10:
+            if cumulative_mark_for_the_completed_years(report_cards, start_bac_id, end_bac_id) < 10.5:
                 if end_bac_id == 'bac00003':
                     inegible_reasons.append({'id': 'reas0000', 'reason': "Votre moyenne cumulée en Terminale est inférieure au seuil de 10"})
                 else: 
                     bac_year_11 = get_bac_year(end_bac_id) + 11 # to not get the same reason id used in validate_credits
                     inegible_reasons.append({'id': f'reas000{bac_year_11-3}', 'reason': f'Votre moyenne cumulée jusqu\'au bac+{bac_year_11-3} est inférieure au seuil de 10'})
-
-        bac_validation_map = {
-            'bac00010': (['bac00010', 'bac00009', 'bac00008'], 'bac00008', 'bac00010'), # The first element in the tuple is the list of bac_ids to validate, 
-            'bac00009': (['bac00009', 'bac00008', 'bac00007'], 'bac00007', 'bac00009'), # the second element is the start_bac_id, and the third element is the end_bac_id 
-            'bac00008': (['bac00008', 'bac00007', 'bac00006'], 'bac00006', 'bac00008'),
-            'bac00007': (['bac00007', 'bac00006', 'bac00005'], 'bac00005', 'bac00007'),
-            'bac00006': (['bac00006', 'bac00005', 'bac00004'], 'bac00004', 'bac00006'),
-            'bac00005': (['bac00005', 'bac00004'], 'bac00003', 'bac00005'),
-            'bac00004': (['bac00004'], 'bac00002', 'bac00004'),
-            'bac00003': ([], 'bac00001', 'bac00003')
-        }
         if lead.bac_id in bac_validation_map:
             bac_ids, start_bac_id, end_bac_id = bac_validation_map[lead.bac_id]
             if bac_ids:
@@ -680,6 +693,233 @@ def init_routes(app):
             inegible_reasons.append({'id': 'reas0009', 'reason': "Vous avez plus de 2 redoublements durant vos 3 dernières années d'étude"})
 
         return inegible_reasons
+    
+    def get_criteria():
+        """Fetch all visa criteria from the database."""
+        return VisaCriteria.query.all()
+
+    def get_critieria_type_weights():
+        """Fetch all criteria weights from the database."""
+        critieria_type = CriteriaType.query.all()
+        # Create a dictionary for quick access to weights by criteria type ID.
+        return {criterion.id: criterion.weight for criterion in critieria_type}
+
+    def evaluation_score(lead, candidate_profiles):
+        # Fetch all conditions and weights.
+        conditions = {criteria.id: criteria for criteria in get_criteria()}
+        critieria_type_weights = get_critieria_type_weights()
+
+        applicable_scores = []
+        total_weight = 0
+        weighted_sum = 0
+        best_conditions = {}
+        worst_conditions = {}
+
+        # Iterate through the candidate's conditions (as a list of IDs).
+        print('==HAH candidate_profiles 🎀🎀 '+str(candidate_profiles))
+        for condition_id in candidate_profiles:
+            condition = conditions.get(condition_id)
+            if condition:
+                score = condition.score
+                criteria_type_id = condition_id[:6]  # Extracting criteria type ID (e.g., "cri001")
+
+                # Immediate return if a critical failure is detected.
+                if score == 0:
+                    return 0, {}, {}
+
+                # Weighting criteria types (if needed) for a more realistic scoring.
+                weight = critieria_type_weights.get(criteria_type_id, 1.0)  # Default weight is 1 if not specified.
+
+                weighted_sum += score * weight
+                total_weight += weight
+                applicable_scores.append(score)
+
+                # Track best and worst conditions for each criteria type.
+                if score >= 2.5:
+                    if criteria_type_id not in best_conditions or score > best_conditions[criteria_type_id].score:
+                        best_conditions[criteria_type_id] = condition.as_dict()
+                else:
+                    if criteria_type_id not in worst_conditions or score < worst_conditions[criteria_type_id].score:
+                        worst_conditions[criteria_type_id] = condition.as_dict()
+
+        # If no applicable scores are found, assume a default score (e.g., 5).
+        if not applicable_scores:
+            return 5, best_conditions, worst_conditions
+
+        # Calculate the final score using a weighted average.
+        final_score = weighted_sum / total_weight
+        # mylead = db.session.query(Lead).filter_by(id=lead.id).first()
+
+        # if mylead:
+        lead.evaluation_score = round(final_score, 2)
+        db.session.commit()
+        #db.session.commit()
+        return round(final_score, 2), best_conditions, worst_conditions
+    
+    def get_candidate_profile_conditions(lead, report_cards, report_card_subject_relation):
+
+        candidate_profile_conditions = []
+         # I-Moyenne générale récente
+        most_recent_report_card = get_most_recent_report_card(get_bac_year(lead.bac_id), report_cards)
+        most_recent_average_mark = most_recent_report_card.average_mark_in_20
+        if most_recent_average_mark >10.5 and most_recent_average_mark < 11:
+            candidate_profile_conditions.append('co0010') # Moyenne générale < 11/20
+        elif most_recent_average_mark < 12:
+            candidate_profile_conditions.append('co0014') # Moyenne générale 11-12
+        elif most_recent_average_mark < 13:
+            candidate_profile_conditions.append('co0018') # Moyenne générale 12-13
+        elif most_recent_average_mark < 14:
+            candidate_profile_conditions.append('co0021') # Moyenne générale 13-14
+        elif most_recent_average_mark < 15:
+            candidate_profile_conditions.append('co0027') # Moyenne générale 14-15
+        elif most_recent_average_mark < 16:
+            candidate_profile_conditions.append('co0036') # Moyenne générale 15-16
+        elif most_recent_average_mark < 17:
+            candidate_profile_conditions.append('co0040')   # Moyenne générale 16-17
+        elif most_recent_average_mark < 18:
+            candidate_profile_conditions.append('co0047')   # Moyenne générale 17-18
+        elif most_recent_average_mark < 20:
+            candidate_profile_conditions.append('co0051')   # Moyenne générale > 18
+        # II-Moyenne générale sur 3 ans
+        if lead.bac_id in bac_validation_map:
+            _, start_bac_id, end_bac_id = bac_validation_map[lead.bac_id]
+            cumulative_mark = cumulative_mark_for_the_completed_years(report_cards, start_bac_id, end_bac_id)
+            if cumulative_mark < 11:
+                candidate_profile_conditions.append('co0011')
+            elif cumulative_mark < 12:
+                candidate_profile_conditions.append('co0015')
+            elif cumulative_mark < 13:
+                candidate_profile_conditions.append('co0019')
+            elif cumulative_mark < 14:
+                candidate_profile_conditions.append('co0022')
+            elif cumulative_mark < 15:
+                candidate_profile_conditions.append('co0028')
+            elif cumulative_mark < 16:
+                candidate_profile_conditions.append('co0037')
+            elif cumulative_mark < 17:
+                candidate_profile_conditions.append('co0041')
+            elif cumulative_mark < 18:
+                candidate_profile_conditions.append('co0048')
+            elif cumulative_mark < 20:
+                candidate_profile_conditions.append('co0052')
+        # III-Moyenne matières principales
+        if len(report_cards) > 1:
+            average_mark_most_weighted_subjects = get_mark_most_weighted_subjects(report_cards, report_card_subject_relation)
+            if average_mark_most_weighted_subjects < 11:
+                candidate_profile_conditions.append('co0012')
+            elif average_mark_most_weighted_subjects < 12:
+                candidate_profile_conditions.append('co0016')
+            elif average_mark_most_weighted_subjects < 13:
+                candidate_profile_conditions.append('co0020')
+            elif average_mark_most_weighted_subjects < 14:
+                candidate_profile_conditions.append('co0023')
+            elif average_mark_most_weighted_subjects < 15:
+                candidate_profile_conditions.append('co0029')
+            elif average_mark_most_weighted_subjects < 16:
+                candidate_profile_conditions.append('co0038')
+            elif average_mark_most_weighted_subjects < 17:
+                candidate_profile_conditions.append('co0042')
+            elif average_mark_most_weighted_subjects < 18:
+                candidate_profile_conditions.append('co0049')
+            elif average_mark_most_weighted_subjects < 20:
+                candidate_profile_conditions.append('co0053')
+        # IV-Performances stables sur 2 ans/3 ans
+        if len(report_cards) > 1:
+            if not mark_has_progressed_for_2_years_with_no_redoublement:
+                candidate_profile_conditions.append('co0013')
+        if len(report_cards) > 1:
+            if not mark_has_progressed_for_3_years_with_no_redoublement:
+                candidate_profile_conditions.append('co0017')
+                
+        # V-Progression continue sur 3 ans
+        if len(report_cards) > 2:
+            if mark_has_progressed_for_3_years_with_no_redoublement and most_recent_average_mark < 14:
+                candidate_profile_conditions.append('co0024')
+            if mark_has_progressed_for_3_years_with_no_redoublement and most_recent_average_mark < 15:
+                candidate_profile_conditions.append('co0030')
+            if mark_has_progressed_for_3_years_with_no_redoublement and most_recent_average_mark < 16:
+                candidate_profile_conditions.append('co0039')
+            if mark_has_progressed_for_3_years_with_no_redoublement and most_recent_average_mark < 17:
+                candidate_profile_conditions.append('co0043')
+            if mark_has_progressed_for_3_years_with_no_redoublement and most_recent_average_mark < 18:
+                candidate_profile_conditions.append('co0049')
+            if mark_has_progressed_for_3_years_with_no_redoublement and most_recent_average_mark < 20:
+                candidate_profile_conditions.append('co0050')
+        # VI-Niveau de français
+        if lead.french_level:
+            if lead.french_level == 'B2':
+                candidate_profile_conditions.append('co0025')
+            elif lead.french_level >= 'C1':
+                candidate_profile_conditions.append('co0032')
+        # VII-Expérience professionnelle
+        if has_work_experience_of_3_months:
+            candidate_profile_conditions.append('co0026')
+        if has_work_experience_of_6_months:
+            candidate_profile_conditions.append('co0035')
+        if has_work_experience_of_more_than_12_months:
+            candidate_profile_conditions.append('co0045')
+            
+        # VIII-Distinction dans les matières principales
+        award = Award.query.filter_by(lead_id=lead.id).first()
+        if award:
+            candidate_profile_conditions.append('co0046')
+        # IX-Séjours en France/Schengen
+        travaling = Traveling.query.filter_by(lead_id=lead.id).first()
+        if travaling:
+            candidate_profile_conditions.append('co0033')
+        # X-Niveau d'anglais
+        if lead.english_level and lead.english_level > 'B1' :
+            candidate_profile_conditions.append('co0034')
+        # XI-Classement
+        most_recent_available_report_card_second = get_most_recent_report_card(get_bac_year(most_recent_report_card.bac_id) - 1, report_cards) if most_recent_report_card else None
+
+        if len(report_cards) > 1:
+            if most_recent_report_card.overall_rank and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank):
+                if most_recent_report_card.overall_rank > 20 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank > 20):
+                    candidate_profile_conditions.append('co0055')
+                if most_recent_report_card.overall_rank > 15 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank > 15):
+                    candidate_profile_conditions.append('co0056')
+                if most_recent_report_card.overall_rank > 10 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank > 10):
+                    candidate_profile_conditions.append('co0057')
+                if most_recent_report_card.overall_rank > 5 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank > 5):
+                    candidate_profile_conditions.append('co0058')
+                if most_recent_report_card.overall_rank > 3 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank > 3):
+                    candidate_profile_conditions.append('co0059')
+                if most_recent_report_card.overall_rank == 3 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank == 3):
+                    candidate_profile_conditions.append('co0060')
+                if most_recent_report_card.overall_rank == 2 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank == 2):
+                    candidate_profile_conditions.append('co0061')
+                if most_recent_report_card.overall_rank == 1 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank == 1):
+                    candidate_profile_conditions.append('co0061')
+        # XII-Mention au baccalauréat
+        baccalaureat_report_card = next((rc for rc in report_cards if rc.baccalaureat_average_mark_in_20 and rc.baccalaureat_average_mark_in_20 > 0), None)
+        baccalaureat_average_mark = None
+        if baccalaureat_report_card:
+            baccalaureat_average_mark = baccalaureat_report_card.baccalaureat_average_mark_in_20
+        if baccalaureat_average_mark :
+            if baccalaureat_average_mark > 14:
+                candidate_profile_conditions.append('co0031')
+            if baccalaureat_average_mark > 16  :
+                candidate_profile_conditions.append('co0044')
+            if baccalaureat_average_mark > 17:
+                candidate_profile_conditions.append('co0054') 
+        return candidate_profile_conditions
+      
+
+
+
+    def get_mark_most_weighted_subjects(report_cards, report_card_subject_relation):
+        """Get the general average mark of the 3 most weighted subjects per year of the last 2 available years"""
+        most_weighted_subjects = []
+        for report_card in report_cards:
+            report_card_subjects = [subject for subject in report_card_subject_relation if subject.report_card_id == report_card.id and not subject.is_baccalaureat]
+            if not report_card_subjects:
+                continue
+            most_weighted_subjects += sorted(report_card_subjects, key=lambda subject: subject.weight, reverse=True)[:3]
+        total_weight = sum(subject.weight for subject in most_weighted_subjects)
+        total_mark = sum(subject.mark_in_20 * subject.weight for subject in most_weighted_subjects)
+        return total_mark / total_weight if total_weight > 0 else 0
+    
 
     def get_bac_year(bac_id):
         return int(bac_id[-2:])
@@ -708,6 +948,7 @@ def init_routes(app):
         if not report_card:
             return False
         valid_term_count = sum(1 for term in range(1, 4) if getattr(report_card, f'school_term{term}_average_mark_in_20') is not None)
+        #print('==HAH valid_term_count 🎀🎀 '+str(valid_term_count))
         return valid_term_count >= number_of_valid_terms
     
     def has_less_than_12_in_baccalaureat(report_card_subject_relation, lead_id):
@@ -745,13 +986,20 @@ def init_routes(app):
             Course.id.isnot(None),
             Course.id != ""
         ).all()
+        #start_time = time.time()
 
+        # Your existing code here
+
+        #loading_time = time.time() - start_time
+        #print(f"Loading time: {loading_time:.2f} seconds")
         # Get the most recent BAC and report card details
         most_recent_bac_id = max(rc.bac_id for rc in report_cards)
         most_recent_bac_year = get_bac_year(most_recent_bac_id)
         most_recent_available_report_card_first = get_most_recent_report_card(most_recent_bac_year, report_cards)
         most_recent_available_report_card_second = get_most_recent_report_card(get_bac_year(most_recent_available_report_card_first.bac_id) - 1, report_cards) if most_recent_available_report_card_first else None
 
+        #loading_time = time.time() - start_time
+        #print(f"Loading time most_recent_report_card: {loading_time:.2f} seconds")
         # Fetch lead and course-related data
         lead_level_value_relation = LeadLevelValueRelation.query.filter_by(lead_id=lead_id).first()
         lead_subject_relation = LeadSubjectRelation.query.filter_by(lead_id=lead_id).all()
@@ -766,13 +1014,21 @@ def init_routes(app):
                 CourseLevelRelation.course_id.in_([course.id for course in valid_courses])
             ).all()
             valid_courses.update(get_courses_where_level_values_are_similar_to_lead_degree_name(lead_level_value_relation, initial_courses, course_level_value_relation))
+        #loading_time = time.time() - start_time
+        #print(f"Loading time get_courses_where_level_values_are_similar_to_lead_degree_name: {loading_time:.2f} seconds")
 
         valid_courses.update(get_all_courses_from_lead_subject_relation(lead_subject_relation, course_subject_relation))
+        #loading_time = time.time() - start_time
+        # Remove course_subject_relation records in course_subject_relation where csr.course_id is in valid_courses
+        course_subject_relation = [csr for csr in course_subject_relation if csr.course_id not in valid_courses]
+
+        #print(f"Loading time get_all_courses_from_lead_subject_relation: {loading_time:.2f} seconds")
         valid_courses.update(get_courses_where_subjects_are_similar_to_lead_external_subjects(
             report_card_subjects, valid_courses, most_recent_available_report_card_first,
             most_recent_available_report_card_second, course_subject_relation
         ))
-
+        #loading_time = time.time() - start_time
+        #print(f"Loading time get_courses_where_subjects_are_similar_to_lead_external_subjects: {loading_time:.2f} seconds")
         # Filter course_subject_relation by valid courses to optimize subsequent operations
         valid_course_ids = {course.id for course in valid_courses}
         course_subject_relation = [csr for csr in course_subject_relation if csr.course_id in valid_course_ids]
@@ -795,7 +1051,8 @@ def init_routes(app):
         purge_courses_from_course_subject_relation(report_cards, report_card_subjects, valid_courses, invalid_courses, course_subject_relation)
 
         valid_courses = reorder_valid_courses_by_priority(valid_courses, lead_level_value_relation, lead_subject_relation, course_level_value_relation, course_subject_relation, report_card_subjects)
-
+        #loading_time = time.time() - start_time
+        #print(f"Loading time reorder_valid_courses_by_priority: {loading_time:.2f} seconds")
         # Remove invalid_courses items with empty courses
         invalid_courses = [item for item in invalid_courses if item['courses']]
 
@@ -896,7 +1153,7 @@ def init_routes(app):
             most_recent_available_report_card_first, 
             most_recent_available_report_card_second, 
             course_subject_relation):
-        print('xxx initial_courses 🤷‍♂️ '+str(len(initial_courses))+' - '+str(len(course_subject_relation)))
+        #print('xxx initial_courses 🤷‍♂️ '+str(len(initial_courses))+' - '+str(len(course_subject_relation)))
         # Step 1: Create a set of target subject names with weights (top 3 weights)
         target_subject_names_with_weight = []
 
@@ -996,6 +1253,14 @@ def init_routes(app):
                 reason = 'Ces formations nécessitent une expérience professionnelle'
                 invalid_courses_by_reason = add_invalid_course_reason(reason, invalid_courses)
                 remove_invalid_courses(valid_courses, invalid_courses_by_reason, [0.5, 1])
+            elif work_experience: 
+                experience_duration = (work_experience.end_date - work_experience.start_date).days / 30  # Convert days to months
+                if experience_duration >= 3:
+                    has_work_experience_of_3_months = True
+                if experience_duration >= 6:
+                    has_work_experience_of_6_months = True
+                if experience_duration > 12:
+                    has_work_experience_of_more_than_12_months = True
 
         def check_language_requirements():
             language_requirements = [
@@ -1054,6 +1319,10 @@ def init_routes(app):
             if mark_has_progressed_for_2_years and lead.number_of_repeats_n_3 > 1:
                 reason = "Malgré une progression de vos notes, vous avez redoublé trop de fois pour pouvoir intégrer ces formations"
                 mark_has_progressed_for_2_years = False
+            if mark_has_progressed_for_2_years and lead.number_of_repeats_n_3 == 0:
+                mark_has_progressed_for_2_years_with_no_redoublement = True
+            if mark_has_progressed_for_3_years and lead.number_of_repeats_n_3 == 0:
+                mark_has_progressed_for_3_years_with_no_redoublement = True
 
             if not mark_has_progressed_for_2_years:
                 invalid_courses_by_reason = add_invalid_course_reason(reason, invalid_courses)

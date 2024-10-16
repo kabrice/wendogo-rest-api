@@ -11,6 +11,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from stop_words import get_stop_words
 import unicodedata 
 from functools import lru_cache
+from sklearn.metrics.pairwise import cosine_similarity
 
 nltk.download('punkt')
 stemmer = nltk.stem.porter.PorterStemmer()
@@ -57,50 +58,47 @@ class Helper:
         return jsonify({"errorId": new_log.id, "success": False})         
 
 
-    # Optimized function to remove accents using unicodedata
     @staticmethod 
     @lru_cache(maxsize=None)
     def f_remove_accents(text):
         """
-        Removes accents from the text using Unicode normalization.
+        Removes accents from text using Unicode normalization.
         """
         return ''.join(
             char for char in unicodedata.normalize('NFD', text.lower())
             if unicodedata.category(char) != 'Mn'
         )
 
-    # Optimized tokenization, stemming, and normalization with caching
     @staticmethod 
-    @lru_cache(maxsize=1000)
-    def stem_tokens(tokens):
-        return [stemmer.stem(token) for token in tokens]
+    def custom_tokenizer(text):
+        """
+        Custom tokenizer that removes punctuation, accents, stop words,
+        and applies stemming.
+        """
+        # Remove accents and punctuation, split words by whitespace
+        text = Helper.f_remove_accents(text).translate(remove_punctuation_map)
+        tokens = re.split(r'\W+', text)
 
-    def normalize(text):
-        text = Helper.f_remove_accents(text)
-        tokens = nltk.word_tokenize(text.translate(remove_punctuation_map))
-        return Helper.stem_tokens(tuple(tokens))  # Use tuple to allow caching with lru_cache
+        # Filter stop words and apply stemming
+        return [stemmer.stem(token) for token in tokens if token and token not in stop_words]
 
-    # Preinitialize the TfidfVectorizer once and reuse it
+    # Preinitialize TfidfVectorizer for reuse
     vectorizer = TfidfVectorizer(
-        tokenizer=normalize,
-        stop_words=stop_words,
+        tokenizer=custom_tokenizer,
+        lowercase=True,  # Lowercase handled by `f_remove_accents`
         ngram_range=(1, 1)
     )
 
     @staticmethod 
     def cosine_sim(text1, text2):
         """
-        Computes the cosine similarity between two texts.
+        Computes the cosine similarity between two texts using preinitialized TfidfVectorizer.
         """
-        # Remove accents and prepare texts
-        text1 = Helper.f_remove_accents(text1)
-        text2 = Helper.f_remove_accents(text2)
+        # Transform texts into TF-IDF vectors
+        tfidf_matrix = Helper.vectorizer.fit_transform([text1, text2])
         
-        # Fit the TF-IDF on the two texts
-        tfidf = Helper.vectorizer.fit_transform([text1, text2])
-        
-        # Return cosine similarity
-        return (tfidf * tfidf.T).A[0, 1]
+        # Compute cosine similarity directly using sklearn's optimized function
+        return cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
      
 #     def tryMe(self):               
 #         text1 ="Droit"

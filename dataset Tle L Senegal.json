@@ -130,8 +130,8 @@
     [
       {
         "reference": 1,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Philosophie",
           "validated": true
@@ -152,8 +152,8 @@
       },
       {
         "reference": 2,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Littérature",
           "validated": true
@@ -174,8 +174,8 @@
       },
       {
         "reference": 3,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Histoire-Géographie",
           "validated": true
@@ -196,8 +196,8 @@
       },
       {
         "reference": 4,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Français",
           "validated": true
@@ -218,8 +218,8 @@
       },
       {
         "reference": 5,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Anglais",
           "validated": true
@@ -240,8 +240,8 @@
       },
       {
         "reference": 6,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Espagnol",
           "validated": true
@@ -262,8 +262,8 @@
       },
       {
         "reference": 7,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Mathématiques",
           "validated": true
@@ -284,8 +284,8 @@
       },
       {
         "reference": 8,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Sciences Physiques",
           "validated": true
@@ -306,8 +306,8 @@
       },
       {
         "reference": 9,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Éducation Physique",
           "validated": true
@@ -328,8 +328,8 @@
       },
       {
         "reference": 10,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Philosophie Morale",
           "validated": true
@@ -350,8 +350,8 @@
       },
       {
         "reference": 11,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Arts",
           "validated": true
@@ -372,8 +372,8 @@
       },
       {
         "reference": 12,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Éducation Civique",
           "validated": true
@@ -396,8 +396,8 @@
     [
       {
         "reference": 13,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Philosophie",
           "validated": true
@@ -418,8 +418,8 @@
       },
       {
         "reference": 14,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Littérature",
           "validated": true
@@ -440,8 +440,8 @@
       },
       {
         "reference": 15,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Histoire-Géographie",
           "validated": true
@@ -462,8 +462,8 @@
       },
       {
         "reference": 16,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Français",
           "validated": true
@@ -484,8 +484,8 @@
       },
       {
         "reference": 17,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Anglais",
           "validated": true
@@ -506,8 +506,8 @@
       },
       {
         "reference": 18,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Espagnol",
           "validated": true
@@ -528,8 +528,8 @@
       },
       {
         "reference": 19,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Mathématiques",
           "validated": true
@@ -550,8 +550,8 @@
       },
       {
         "reference": 20,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Sciences Physiques",
           "validated": true
@@ -572,8 +572,8 @@
       },
       {
         "reference": 21,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Éducation Physique",
           "validated": true
@@ -594,8 +594,8 @@
       },
       {
         "reference": 22,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Philosophie Morale",
           "validated": true
@@ -616,8 +616,8 @@
       },
       {
         "reference": 23,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Arts",
           "validated": true
@@ -638,8 +638,8 @@
       },
       {
         "reference": 24,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Éducation Civique",
           "validated": true
@@ -662,8 +662,8 @@
     [
       {
         "reference": 25,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Philosophie",
           "validated": true
@@ -684,8 +684,8 @@
       },
       {
         "reference": 26,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Littérature",
           "validated": true
@@ -706,8 +706,8 @@
       },
       {
         "reference": 27,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Histoire-Géographie",
           "validated": true
@@ -728,8 +728,8 @@
       },
       {
         "reference": 28,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Français",
           "validated": true
@@ -750,8 +750,8 @@
       },
       {
         "reference": 29,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Anglais",
           "validated": true
@@ -772,8 +772,8 @@
       },
       {
         "reference": 30,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Espagnol",
           "validated": true
@@ -794,8 +794,8 @@
       },
       {
         "reference": 31,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Mathématiques",
           "validated": true
@@ -816,8 +816,8 @@
       },
       {
         "reference": 32,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Sciences Physiques",
           "validated": true
@@ -838,8 +838,8 @@
       },
       {
         "reference": 33,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Éducation Physique",
           "validated": true
@@ -860,8 +860,8 @@
       },
       {
         "reference": 34,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Philosophie Morale",
           "validated": true
@@ -882,8 +882,8 @@
       },
       {
         "reference": 35,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Arts",
           "validated": true
@@ -904,8 +904,8 @@
       },
       {
         "reference": 36,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Éducation Civique",
           "validated": true
@@ -971,8 +971,8 @@
     [
       {
         "reference": 1,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Philosophie",
           "validated": true
@@ -993,8 +993,8 @@
       },
       {
         "reference": 2,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Littérature",
           "validated": true
@@ -1015,8 +1015,8 @@
       },
       {
         "reference": 3,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Histoire-Géographie",
           "validated": true
@@ -1037,8 +1037,8 @@
       },
       {
         "reference": 4,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Français",
           "validated": true
@@ -1059,8 +1059,8 @@
       },
       {
         "reference": 5,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Anglais",
           "validated": true
@@ -1081,8 +1081,8 @@
       },
       {
         "reference": 6,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Espagnol",
           "validated": true
@@ -1103,8 +1103,8 @@
       },
       {
         "reference": 7,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Mathématiques",
           "validated": true
@@ -1125,8 +1125,8 @@
       },
       {
         "reference": 8,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Sciences Physiques",
           "validated": true
@@ -1147,8 +1147,8 @@
       },
       {
         "reference": 9,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Éducation Physique",
           "validated": true
@@ -1169,8 +1169,8 @@
       },
       {
         "reference": 10,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Arts",
           "validated": true
@@ -1193,8 +1193,8 @@
     [
       {
         "reference": 11,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Philosophie",
           "validated": true
@@ -1217,8 +1217,8 @@
     [
       {
         "reference": 21,
-        "is_baccalaureat": false,
-        "is_practical_work": false,
+        "isBaccalaureat": false,
+        "isPracticalWork": false,
         "label": {
           "value": "Philosophie",
           "validated": true
@@ -1284,8 +1284,8 @@
   [
     {
       "reference": 1,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Français",
         "validated": true
@@ -1306,8 +1306,8 @@
     },
     {
       "reference": 2,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Histoire-Géographie",
         "validated": true
@@ -1328,8 +1328,8 @@
     },
     {
       "reference": 3,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Anglais",
         "validated": true
@@ -1350,8 +1350,8 @@
     },
     {
       "reference": 4,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Espagnol",
         "validated": true
@@ -1372,8 +1372,8 @@
     },
     {
       "reference": 5,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Mathématiques",
         "validated": true
@@ -1394,8 +1394,8 @@
     },
     {
       "reference": 6,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Sciences Physiques",
         "validated": true
@@ -1416,8 +1416,8 @@
     },
     {
       "reference": 7,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Sciences de la Vie et de la Terre (SVT)",
         "validated": true
@@ -1438,8 +1438,8 @@
     },
     {
       "reference": 8,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Éducation Physique",
         "validated": true
@@ -1460,8 +1460,8 @@
     },
     {
       "reference": 9,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Arts Plastiques",
         "validated": true
@@ -1482,8 +1482,8 @@
     },
     {
       "reference": 10,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Éducation Civique",
         "validated": true
@@ -1506,8 +1506,8 @@
   [
     {
       "reference": 11,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Français",
         "validated": true
@@ -1528,8 +1528,8 @@
     },
     {
       "reference": 12,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Histoire-Géographie",
         "validated": true
@@ -1550,8 +1550,8 @@
     },
     {
       "reference": 13,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Anglais",
         "validated": true
@@ -1572,8 +1572,8 @@
     },
     {
       "reference": 14,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Espagnol",
         "validated": true
@@ -1594,8 +1594,8 @@
     },
     {
       "reference": 15,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Mathématiques",
         "validated": true
@@ -1616,8 +1616,8 @@
     },
     {
       "reference": 16,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Sciences Physiques",
         "validated": true
@@ -1638,8 +1638,8 @@
     },
     {
       "reference": 17,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Sciences de la Vie et de la Terre (SVT)",
         "validated": true
@@ -1660,8 +1660,8 @@
     },
     {
       "reference": 18,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Éducation Physique",
         "validated": true
@@ -1682,8 +1682,8 @@
     },
     {
       "reference": 19,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Arts Plastiques",
         "validated": true
@@ -1704,8 +1704,8 @@
     },
     {
       "reference": 20,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Éducation Civique",
         "validated": true
@@ -1729,8 +1729,8 @@
   [
     {
       "reference": 21,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Français",
         "validated": true
@@ -1751,8 +1751,8 @@
     },
     {
       "reference": 22,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Histoire-Géographie",
         "validated": true
@@ -1773,8 +1773,8 @@
     },
     {
       "reference": 23,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Anglais",
         "validated": true
@@ -1795,8 +1795,8 @@
     },
     {
       "reference": 24,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Espagnol",
         "validated": true
@@ -1817,8 +1817,8 @@
     },
     {
       "reference": 25,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Mathématiques",
         "validated": true
@@ -1839,8 +1839,8 @@
     },
     {
       "reference": 26,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Sciences Physiques",
         "validated": true
@@ -1861,8 +1861,8 @@
     },
     {
       "reference": 27,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Sciences de la Vie et de la Terre (SVT)",
         "validated": true
@@ -1883,8 +1883,8 @@
     },
     {
       "reference": 28,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Éducation Physique",
         "validated": true
@@ -1905,8 +1905,8 @@
     },
     {
       "reference": 29,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Arts Plastiques",
         "validated": true
@@ -1927,8 +1927,8 @@
     },
     {
       "reference": 30,
-      "is_baccalaureat": false,
-      "is_practical_work": false,
+      "isBaccalaureat": false,
+      "isPracticalWork": false,
       "label": {
         "value": "Éducation Civique",
         "validated": true

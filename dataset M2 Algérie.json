@@ -1,0 +1,767 @@
+{
+  "lastname": "Brahimi",
+  "firstname": "Amine",
+  "phone": "+213558445632",
+  "email": "amine.brahimi@example.com",
+  "blankYearRepetitionNumber": 0,
+  "canJustifyOtherLanguage": false,
+  "canProveWorkExperience": false,
+  "classRepetitionNumber": 0,
+  "hasWonAward": false,
+  "hasWorkExperience": true,
+  "disable": false,
+  "isFrancophone": false,
+  "isFrancophoneCountry": false,
+  "lead_status_id": "lst00002",
+  "hasPassport": true,
+  "isResult1Available": true,
+  "isResult2Available": true,
+  "phoneNumberFormatted": {
+    "name": "+213558445632",
+    "validated": true
+  },
+  "selectedSchoolYear1": {
+    "id": "schy0072",
+    "name": "2023",
+    "validated": true
+  },
+  "selectedSchoolYear2": {
+    "id": "schy0073",
+    "name": "2024",
+    "validated": true
+  },
+  "passportDetails": {
+    "endDate": "01/01/2032",
+    "startDate": "01/01/2022",
+    "validated": true
+  },
+  "visaTypeSelectedId": "vis00004",
+  "schoolLevelSelected": "Université",
+  "selectedCountry": {
+    "default": false,
+    "id": 4,
+    "iso2": "DZ",
+    "most_popular_spoken_language_id": "spl00005",
+    "name": "Algérie",
+    "validated": true
+  },
+  "birthDate": {
+    "date": "15/07/1999",
+    "validated": true
+  },
+  "nationality": {
+    "id": "nat0004",
+    "name": "Algérienne",
+    "validated": true
+  },
+  "country": "DZ",
+  "address": {
+    "name": "Bab Ezzouar, Alger",
+    "validated": true
+  },
+  "addressName": {
+    "name": "Bab Ezzouar, Alger",
+    "validated": true
+  },
+  "alreadyTraveledToFrance": false,
+  "salutation": "Monsieur", 
+  "universityLevelSelected": {
+    "id": "bac00008", 
+    "name": "BAC+5", 
+    "validated": true
+  },
+  "hsLevelSelected": "deg00009",
+  "degreeSelected": {
+    "id": "deg00009",
+    "name": "Master",
+    "validated": true
+  },
+  "degreeExactNameValue": "Master en Sciences de la Santé Publique",
+  "selectedSchoolYear3": {
+    "id": "schy0074",
+    "name": "2025",
+    "validated": true
+  },
+  "programDomainObj": {
+    "id": "lvv0066",
+    "name": "Science de la sante"
+  },
+  "mainSubjects": [
+    {
+      "id": "suj0247",
+      "name": "Épidémiologie",
+      "priority": 1
+    },
+    {
+      "id": "suj0037",
+      "name": "Biostatistique",
+      "priority": 2
+    },
+    {
+      "id": "suj0310",
+      "name": "Santé Environnementale",
+      "priority": 3
+    }
+  ],
+  "selectedFrenchLevel": 60,
+  "selectedEnglishLevel": 20,
+  "couldPayTuition": true,
+  "haveDoneFrenchTest": false,
+  "canJustifyEnglishLevel": false,
+  "isResult3Available": true,
+  "academicYearHeadDetails3": {
+    "subjectWeightSystem": {
+      "name": "Crédit",
+      "id": "sws001",
+      "validated": true
+    },
+    "markSystem": {
+      "id": "crs0003",
+      "name": "Sur 20",
+      "validated": true
+    },
+    "schoolName": "Université d'Alger",
+    "city": {
+      "country_id": 4,
+      "default": false,
+      "id": 31230,
+      "name": "Alger"
+    },
+    "country": {
+      "default": false,
+      "id": 4,
+      "iso2": "DZ",
+      "name": "Algérie",
+      "validated": true
+    },
+    "spokenLanguage": {
+      "name": "Français",
+      "id": "spl00001"
+    },
+    "academicYearOrganization": {
+      "name": "Semestre",
+      "id": "ayo00002",
+      "validated": true
+    }
+  },
+  "academicYearHeadDetails2": {
+    "subjectWeightSystem": {
+      "name": "Crédit",
+      "id": "sws001",
+      "validated": true
+    },
+    "markSystem": {
+      "id": "crs0003",
+      "name": "Sur 20",
+      "validated": true
+    },
+    "schoolName": "Université d'Alger",
+    "city": {
+      "country_id": 4,
+      "default": false,
+      "id": 31230,
+      "name": "Alger"
+    },
+    "country": {
+      "default": false,
+      "id": 4,
+      "iso2": "DZ",
+      "name": "Algérie",
+      "validated": true
+    },
+    "spokenLanguage": {
+      "name": "Français",
+      "id": "spl00001"
+    },
+    "academicYearOrganization": {
+      "name": "Semestre",
+      "id": "ayo00002",
+      "validated": true
+    }
+  },
+  "academicYearHeadDetails1": {
+    "subjectWeightSystem": {
+      "name": "Crédit",
+      "id": "sws001",
+      "validated": true
+    },
+    "markSystem": {
+      "id": "crs0003",
+      "name": "Sur 20",
+      "validated": true
+    },
+    "schoolName": "Université d'Alger",
+    "city": {
+      "country_id": 4,
+      "default": false,
+      "id": 31230,
+      "name": "Alger"
+    },
+    "country": {
+      "default": false,
+      "id": 4,
+      "iso2": "DZ",
+      "name": "Algérie",
+      "validated": true
+    },
+    "spokenLanguage": {
+      "name": "Français",
+      "id": "spl00001"
+    },
+    "academicYearOrganization": {
+      "name": "Semestre",
+      "id": "ayo00002",
+      "validated": true
+    }
+  },
+"reportCard3": [
+    [
+        {
+            "reference": 1,
+            "isBaccalaureat": false,
+            "isPracticalWork": false,
+            "label": {
+                "value": "Épidémiologie Avancée",
+                "validated": true
+            },
+            "weight": {
+                "value": "8",
+                "validated": true
+            },
+            "mark": {
+                "value": "12",
+                "valueIn20": "12",
+                "validated": true
+            },
+            "rank": {
+                "value": "5",
+                "validated": true
+            }
+        },
+        {
+            "reference": 2,
+            "isBaccalaureat": false,
+            "isPracticalWork": false,
+            "label": {
+                "value": "Santé Environnementale",
+                "validated": true
+            },
+            "weight": {
+                "value": "7",
+                "validated": true
+            },
+            "mark": {
+                "value": "11",
+                "valueIn20": "11",
+                "validated": true
+            },
+            "rank": {
+                "value": "6",
+                "validated": true
+            }
+        },
+        {
+            "reference": 3,
+            "isBaccalaureat": false,
+            "isPracticalWork": false,
+            "label": {
+                "value": "Biostatistique",
+                "validated": true
+            },
+            "weight": {
+                "value": "8",
+                "validated": true
+            },
+            "mark": {
+                "value": "12",
+                "valueIn20": "12",
+                "validated": true
+            },
+            "rank": {
+                "value": "5",
+                "validated": true
+            }
+        },
+        {
+            "reference": 4,
+            "isBaccalaureat": false,
+            "isPracticalWork": true,
+            "label": {
+                "value": "Pratiques de Recherche en Santé Publique",
+                "validated": true
+            },
+            "weight": {
+                "value": "6",
+                "validated": true
+            },
+            "mark": {
+                "value": "11",
+                "valueIn20": "11",
+                "validated": true
+            },
+            "rank": {
+                "value": "7",
+                "validated": true
+            }
+        }
+    ],
+    [
+        {
+            "reference": 5,
+            "isBaccalaureat": false,
+            "isPracticalWork": false,
+            "label": {
+                "value": "Gestion des Systèmes de Santé",
+                "validated": true
+            },
+            "weight": {
+                "value": "8",
+                "validated": true
+            },
+            "mark": {
+                "value": "12",
+                "valueIn20": "12",
+                "validated": true
+            },
+            "rank": {
+                "value": "4",
+                "validated": true
+            }
+        },
+        {
+            "reference": 6,
+            "isBaccalaureat": false,
+            "isPracticalWork": false,
+            "label": {
+                "value": "Nutrition et Santé Publique",
+                "validated": true
+            },
+            "weight": {
+                "value": "7",
+                "validated": true
+            },
+            "mark": {
+                "value": "11",
+                "valueIn20": "11",
+                "validated": true
+            },
+            "rank": {
+                "value": "6",
+                "validated": true
+            }
+        },
+        {
+            "reference": 7,
+            "isBaccalaureat": false,
+            "isPracticalWork": true,
+            "label": {
+                "value": "Évaluation des Politiques de Santé",
+                "validated": true
+            },
+            "weight": {
+                "value": "8",
+                "validated": true
+            },
+            "mark": {
+                "value": "11",
+                "valueIn20": "11",
+                "validated": true
+            },
+            "rank": {
+                "value": "7",
+                "validated": true
+            }
+        },
+        {
+            "reference": 8,
+            "isBaccalaureat": false,
+            "isPracticalWork": false,
+            "label": {
+                "value": "Anglais Technique Médical",
+                "validated": true
+            },
+            "weight": {
+                "value": "4",
+                "validated": true
+            },
+            "mark": {
+                "value": "13",
+                "valueIn20": "13",
+                "validated": true
+            },
+            "rank": {
+                "value": "3",
+                "validated": true
+            }
+        }
+    ]
+],
+"reportCard2": [
+    [
+        {
+            "reference": 1,
+            "isBaccalaureat": false,
+            "isPracticalWork": false,
+            "label": {
+                "value": "Méthodologie de Recherche en Santé",
+                "validated": true
+            },
+            "weight": {
+                "value": "8",
+                "validated": true
+            },
+            "mark": {
+                "value": "13",
+                "valueIn20": "13",
+                "validated": true
+            },
+            "rank": {
+                "value": "4",
+                "validated": true
+            }
+        },
+        {
+            "reference": 2,
+            "isBaccalaureat": false,
+            "isPracticalWork": false,
+            "label": {
+                "value": "Santé et Développement Social",
+                "validated": true
+            },
+            "weight": {
+                "value": "7",
+                "validated": true
+            },
+            "mark": {
+                "value": "12",
+                "valueIn20": "12",
+                "validated": true
+            },
+            "rank": {
+                "value": "5",
+                "validated": true
+            }
+        },
+        {
+            "reference": 3,
+            "isBaccalaureat": false,
+            "isPracticalWork": false,
+            "label": {
+                "value": "Gestion de Projet en Santé Publique",
+                "validated": true
+            },
+            "weight": {
+                "value": "8",
+                "validated": true
+            },
+            "mark": {
+                "value": "12",
+                "valueIn20": "12",
+                "validated": true
+            },
+            "rank": {
+                "value": "6",
+                "validated": true
+            }
+        },
+        {
+            "reference": 4,
+            "isBaccalaureat": false,
+            "isPracticalWork": true,
+            "label": {
+                "value": "Statistiques Avancées",
+                "validated": true
+            },
+            "weight": {
+                "value": "6",
+                "validated": true
+            },
+            "mark": {
+                "value": "13",
+                "valueIn20": "13",
+                "validated": true
+            },
+            "rank": {
+                "value": "4",
+                "validated": true
+            }
+        }
+    ],
+    [
+        {
+            "reference": 5,
+            "isBaccalaureat": false,
+            "isPracticalWork": false,
+            "label": {
+                "value": "Systèmes de Santé Comparés",
+                "validated": true
+            },
+            "weight": {
+                "value": "8",
+                "validated": true
+            },
+            "mark": {
+                "value": "12",
+                "valueIn20": "12",
+                "validated": true
+            },
+            "rank": {
+                "value": "5",
+                "validated": true
+            }
+        },
+        {
+            "reference": 6,
+            "isBaccalaureat": false,
+            "isPracticalWork": false,
+            "label": {
+                "value": "Politique et Planification de la Santé",
+                "validated": true
+            },
+            "weight": {
+                "value": "7",
+                "validated": true
+            },
+            "mark": {
+                "value": "13",
+                "valueIn20": "13",
+                "validated": true
+            },
+            "rank": {
+                "value": "4",
+                "validated": true
+            }
+        },
+        {
+            "reference": 7,
+            "isBaccalaureat": false,
+            "isPracticalWork": true,
+            "label": {
+                "value": "Hygiène Hospitalière",
+                "validated": true
+            },
+            "weight": {
+                "value": "8",
+                "validated": true
+            },
+            "mark": {
+                "value": "12",
+                "valueIn20": "12",
+                "validated": true
+            },
+            "rank": {
+                "value": "6",
+                "validated": true
+            }
+        },
+        {
+            "reference": 8,
+            "isBaccalaureat": false,
+            "isPracticalWork": false,
+            "label": {
+                "value": "Communication en Santé",
+                "validated": true
+            },
+            "weight": {
+                "value": "8",
+                "validated": true
+            },
+            "mark": {
+                "value": "12",
+                "valueIn20": "12",
+                "validated": true
+            },
+            "rank": {
+                "value": "5",
+                "validated": true
+            }
+        }
+    ]
+],
+"reportCard1": [
+    [
+        {
+            "reference": 1,
+            "isBaccalaureat": false,
+            "isPracticalWork": false,
+            "label": {
+                "value": "Introduction à la Santé Publique",
+                "validated": true
+            },
+            "weight": {
+                "value": "8",
+                "validated": true
+            },
+            "mark": {
+                "value": "11",
+                "valueIn20": "11",
+                "validated": true
+            },
+            "rank": {
+                "value": "5",
+                "validated": true
+            }
+        },
+        {
+            "reference": 2,
+            "isBaccalaureat": false,
+            "isPracticalWork": false,
+            "label": {
+                "value": "Bioéthique et Droit de la Santé",
+                "validated": true
+            },
+            "weight": {
+                "value": "7",
+                "validated": true
+            },
+            "mark": {
+                "value": "10",
+                "valueIn20": "10",
+                "validated": true
+            },
+            "rank": {
+                "value": "6",
+                "validated": true
+            }
+        },
+        {
+            "reference": 3,
+            "isBaccalaureat": false,
+            "isPracticalWork": true,
+            "label": {
+                "value": "Statistiques en Épidémiologie",
+                "validated": true
+            },
+            "weight": {
+                "value": "9",
+                "validated": true
+            },
+            "mark": {
+                "value": "10",
+                "valueIn20": "10",
+                "validated": true
+            },
+            "rank": {
+                "value": "6",
+                "validated": true
+            }
+        },
+        {
+            "reference": 4,
+            "isBaccalaureat": false,
+            "isPracticalWork": false,
+            "label": {
+                "value": "Nutrition et Santé Publique",
+                "validated": true
+            },
+            "weight": {
+                "value": "6",
+                "validated": true
+            },
+            "mark": {
+                "value": "11",
+                "valueIn20": "11",
+                "validated": true
+            },
+            "rank": {
+                "value": "4",
+                "validated": true
+            }
+        }
+    ],
+    [
+        {
+            "reference": 5,
+            "isBaccalaureat": false,
+            "isPracticalWork": false,
+            "label": {
+                "value": "Économie de la Santé",
+                "validated": true
+            },
+            "weight": {
+                "value": "8",
+                "validated": true
+            },
+            "mark": {
+                "value": "10",
+                "valueIn20": "10",
+                "validated": true
+            },
+            "rank": {
+                "value": "5",
+                "validated": true
+            }
+        },
+        {
+            "reference": 6,
+            "isBaccalaureat": false,
+            "isPracticalWork": false,
+            "label": {
+                "value": "Systèmes de Santé Comparés",
+                "validated": true
+            },
+            "weight": {
+                "value": "8",
+                "validated": true
+            },
+            "mark": {
+                "value": "11",
+                "valueIn20": "11",
+                "validated": true
+            },
+            "rank": {
+                "value": "4",
+                "validated": true
+            }
+        },
+        {
+            "reference": 7,
+            "isBaccalaureat": false,
+            "isPracticalWork": true,
+            "label": {
+                "value": "Évaluation des Programmes de Santé",
+                "validated": true
+            },
+            "weight": {
+                "value": "8",
+                "validated": true
+            },
+            "mark": {
+                "value": "10",
+                "valueIn20": "10",
+                "validated": true
+            },
+            "rank": {
+                "value": "6",
+                "validated": true
+            }
+        },
+        {
+            "reference": 8,
+            "isBaccalaureat": false,
+            "isPracticalWork": false,
+            "label": {
+                "value": "Anglais Médical",
+                "validated": true
+            },
+            "weight": {
+                "value": "6",
+                "validated": true
+            },
+            "mark": {
+                "value": "10",
+                "valueIn20": "10",
+                "validated": true
+            },
+            "rank": {
+                "value": "5",
+                "validated": true
+            }
+        }
+    ]
+]
+
+
+
+
+}
