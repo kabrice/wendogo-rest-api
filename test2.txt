@@ -469,3 +469,74 @@ so top_courses = ['course with id=crs0293', 'course with id=crs0290', 'course wi
 licence, master, doctorat, professionnelle, bac, baccalauréat, BTS, b
 
 licence 
+
+
+
+Je souhaite évalués sur une échelle de 5 les chances d’admission (dans des universités)  et d’obtention d’un visa pour la France. Pour cela je me suis définit certains critères des moins favorables au plus favorable
+Voici quelques informations sur les critères sur les critères (favorables ou non favorable) que j'ai noté :
+
+Votre niveau de français est insuffisant pour ces formations
+Ces formations nécessitent une expérience professionnelle
+Vous n\'avez pas pu justifier votre expérience professionnelle
+Vous n\'avez pas progressé entre deux années consécutives
+Malgré une progression de vos notes, vous avez redoublé trop de fois pour pouvoir intégrer ces formations
+Vous n\'avez pas progressé entre trois années consécutives
+Votre rang n\'a pas évolué entre deux années consécutives
+Votre moyenne récente est inférieure au score minimum requis.
+Votre performance dans les matières principales n'est pas suffisante.
+Votre moyenne au baccalauréat est inférieure à 13.
+Votre moyenne dans les matières principales au cours du “” < 12
+Votre rang dans les matières principales est supérieur à 10.
+Ces formations nécessitent de faire des travaux pratiques.
+...
+Séjour déjà réalisé en France durant les 5 derniers années
+Récompense  obtenu dans les matières de bases il y’a moins de 5 ans
+
+Complète cette liste de critères stp, car elles sont trop peu pour évaluer les chances d’admission et d’obtention de visa pour la France.
+
+Voici des exemples de notation que j'ai en tête, elles sont trop limités, je veux que tu me proposes des critères d'évaluation plus précis et plus nombreux pour évaluer les chances d’admission et d’obtention de visa pour la France.
+
+1.Une note de 0/5 pourrait être attribué à un candidat dont le profil rempli ces critères d'inéligibilité suivants :
+- Avoir une moyenne générale inférieure à 10/20
+- Avoir une moyenne générale inférieure à 12/20 au baccalauréat si ce candidat est en licence 2 ou moins
+- Avoir une moyenne cumulé inférieure à 10 durant les 3 dernières années 
+- Avoir une moyenne inférieure à 12/20 dans les matières principales durant le dernier semestre
+- Avoir une moyenne inférieure à 12/20 dans les matières principales durant le dernier trimestre
+- Avoir obtenu une mention passable au baccalauréat si ce candidat est en licence 2 ou moins
+- Pas de baccalaureat
+- Avoir plus de 2 redoublements durant les 3 dernières années d'étude
+- Avoir des dettes de crédit en bac+1 au moins
+- Avoir un niveau B1 ou moins en français
+
+2.Une note de 1/5 pourrait être attribué à un candidat dont le profil rempli les critères suivants :
+- Avoir une moyenne générale inférieure à 11/20
+- Avoir une moyenne générale inférieure à 12/20 au baccalauréat si ce candidat est en licence 2 ou moins
+- Avoir une moyenne cumulé inférieure à 11 durant les 3 dernières années 
+...
+6.Une note de 4/5 pourrait être attribué à un candidat dont le profil rempli les critères suivants :
+- Avoir une moyenne générale compris entre 14 et 15/20
+- Avoir une moyenne générale compris entre 14 et 15/20 au baccalauréat si ce candidat est en licence 2 ou moins
+- Avoir une moyenne cumulé compris entre 14 et 15/20 durant les 3 dernières années
+...
+- Avoir des recompenses dans les matières de bases il y’a moins de 5 ans
+- Avoir réalisé un séjour en France durant les 5 dernières années
+- Avoir un bon niveau de français et d'Anglais
+- Avoir une expérience professionnelle
+
+7.Une note de 4.5/5 pourrait être attribué à un candidat dont le profil rempli les critères suivants :
+- Avoir une moyenne générale compris entre 15 et 16/20
+- Avoir une moyenne générale compris entre 15 et 16/20 au baccalauréat si ce candidat est en licence 2 ou moins
+- Pouvoir justifier d'une expérience professionnelle
+...
+
+Stp aide moi et n'hesites pas à prendre tout le temps qu'il te faut pour me proposer des critères d'évaluation plus précis et plus nombreux pour évaluer les chances d’admission et d’obtention de visa pour la France.
+
+
+Now time to build a python code
+Now imagine that I have list of Critères académiques, Compétences linguistiques, Expérience professionnelle and Autres critères. 
+A candidate entered his academic profile, linguistic skills, professional experience and other criteria. How can I evaluate the chances of admission and obtaining a visa for France based on the criteria he entered and the criteria I have already defined?
+
+Précision par pays :
+
+
+

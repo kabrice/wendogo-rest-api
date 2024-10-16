@@ -26,5 +26,5 @@ class DegreeDAO:
     
     def get_degree_by_not_in_id_list(self, id_list):
         return [degree.as_dict() for degree in Degree.query.filter(Degree.id.notin_(id_list)).all()]
-
+    
 degree_dao = DegreeDAO(Degree)

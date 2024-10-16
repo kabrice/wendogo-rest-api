@@ -6,6 +6,6 @@ class BacDAO:
     
     """Recupérer les bacs des universités traitées dans le simulateur"""
     def get_bacs_of_university(self):
-        return [bac.as_dict() for bac in Bac.query.all() if bac.id not in ['bac00001', 'bac00002', 'bac00003']] 
+        return [bac.as_dict() for bac in Bac.query.all() if bac.id not in ['bac00001', 'bac00002', 'bac00003', 'bac00011', 'bac00012', 'bac00013']] 
 
 bac_dao = BacDAO(Bac)
