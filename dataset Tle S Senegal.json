@@ -2749,7 +2749,7 @@
     "hasWorkExperience": true,
     "workExperience": {
       "description": "Magasin total",
-      "endDate": "None",
+      "endDate": null,
       "startDate": "12/12/2000",
       "validated": true,
       "hideEndDate": true

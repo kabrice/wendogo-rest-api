@@ -536,7 +536,6 @@ Now time to build a python code
 Now imagine that I have list of Critères académiques, Compétences linguistiques, Expérience professionnelle and Autres critères. 
 A candidate entered his academic profile, linguistic skills, professional experience and other criteria. How can I evaluate the chances of admission and obtaining a visa for France based on the criteria he entered and the criteria I have already defined?
 
-Précision par pays :
-
+Précision par 
 
 

@@ -54,6 +54,8 @@ from common.routes import (
     mark_system_route,
     subject_weight_system_route,
     nationality_route,
+    major_route,
+    school_route
 )
     
 lead_status_route.init_routes(app)
@@ -73,6 +75,8 @@ academic_year_organization_route.init_routes(app)
 mark_system_route.init_routes(app)
 subject_weight_system_route.init_routes(app)
 nationality_route.init_routes(app)
+major_route.init_routes(app)
+school_route.init_routes(app)
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0")

@@ -16,6 +16,8 @@ class Major(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
+    subdomain = db.relationship('Subdomain', backref=db.backref('majors', lazy=True))
+
     def as_dict(self):
         excluded_fields = ['created_at', 'updated_at', 'created_by', 'updated_by']
         return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name not in excluded_fields}
