@@ -24,6 +24,7 @@ from common.models.course_subject_relation import CourseSubjectRelation
 from common.models.visa_criteria import VisaCriteria
 from common.models.criteria_type import CriteriaType
 from common.models.visa_criteria_lead_relation import VisaCriteriaLeadRelation
+from common.models.json_input import JsonInput
 from common.models.log import Log
 from common.helper import Helper
 from sqlalchemy import text
@@ -34,6 +35,27 @@ from collections import defaultdict
 from functools import lru_cache
 import re
 import time
+from typing import Dict, Any 
+from contextlib import contextmanager
+import json
+
+@contextmanager
+def db_transaction():
+    """Context manager for database transactions with error handling"""
+    try:
+        yield
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise DatabaseError(f"Database transaction failed: {str(e)}")
+    except Exception as e:
+        db.session.rollback()
+        raise
+class DatabaseError(Exception):
+    """Custom exception for database operations"""
+    def __init__(self, message, db, request):
+        super().__init__(message)
+        Helper.logError(message ,db, Log, request)
 
 
 def init_routes(app):
@@ -211,7 +233,7 @@ def init_routes(app):
 
 
     @app.route('/user/generate/courses', methods=['PUT'])
-    def insert_lead_reports_and_generate_courses():
+    def update_user_and_insert_lead_reports_and_generate_courses():
         user_payload = request.json
     
         user_payload = request.json
@@ -224,6 +246,7 @@ def init_routes(app):
             """I - Insert or update user and related data"""
             update_user(user, user_payload)
             lead = update_or_create_lead(user.id, user_payload)
+            delete_and_create_json_input(lead.id, user_payload)
             delete_and_create_passport(user.id, user_payload)
             external_degree = update_or_create_external_degree(user_payload)
             if user_payload.get('programDomainObj', {}).get('id'):
@@ -269,7 +292,7 @@ def init_routes(app):
     def update_or_create_lead(user_id, payload):
         # Retrieve the existing lead or create a new one if not found
         lead = Lead.query.filter_by(user_id=user_id).first()
-        
+        nonlocal blank_year_1_time, blank_year_2_times_and_more
         if not lead:
             # Retrieve the highest existing ID for Lead and increment it
             last_lead = Lead.query.order_by(Lead.id.desc()).first()
@@ -298,12 +321,32 @@ def init_routes(app):
         lead.can_prove_spoken_language_level = payload.get('canJustifyOtherLanguage')
         lead.number_of_repeats_n_3 = payload.get('classRepetitionNumber')
         lead.number_of_blank_years = payload.get('blankYearRepetitionNumber')
+
+        if payload.get('blankYearRepetitionNumber') == 1:
+            blank_year_1_time = True
+        if payload.get('blankYearRepetitionNumber') >= 2:
+            blank_year_2_times_and_more = True
         
         db.session.add(lead)
         db.session.commit()
         
         return lead
 
+    def delete_and_create_json_input(lead_id, payload):
+        # Delete any existing JSON input associated with the lead
+        JsonInput.query.filter_by(lead_id=lead_id).delete()
+        last_json_input = JsonInput.query.order_by(JsonInput.id.desc()).first()
+        new_json_input_id = (last_json_input.id + 1) if last_json_input else 1
+        # Minify the payload
+        minified_payload = json.dumps(payload, separators=(',', ':'))
+        # Create a new JSON input
+        json_input = JsonInput( 
+            id=new_json_input_id,
+            lead_id=lead_id,
+            content=minified_payload
+        )
+        db.session.add(json_input)
+        db.session.commit()
 
     def delete_all_report_cards_and_report_card_subject_relations(lead_id):
         # Delete all report card subject relations in one go
@@ -645,6 +688,18 @@ def init_routes(app):
     has_work_experience_of_3_months = False # This is a global variable to check if the lead has a work experience of 3 months
     has_work_experience_of_6_months = False # This is a global variable to check if the lead has a work experience of 6 months
     has_work_experience_of_more_than_12_months = False # This is a global variable to check if the lead has a work experience of more than 12 months
+    mark_no_progression_for_2_years = False
+    mark_no_progression_for_3_years = False
+    rank_MP_top_10 = False
+    rank_no_progression_for_2_years = False
+    blank_year_1_time = False
+    blank_year_2_times_and_more = False
+    repeat_1_time = False
+    repeat_2_times = False
+    TP_subjects_validated = False 
+    TP_subjects_insufficient_mark = False
+    no_working_experience = False
+    no_working_experience_proof = False
     def generate_courses(lead):
         lead_id = lead.id    
         report_cards = ReportCard.query.filter_by(lead_id=lead_id).all()
@@ -652,7 +707,7 @@ def init_routes(app):
         inegible_reasons = check_inegibility_lead(lead, report_cards, report_card_subject_relation)
         #print('==HAH report_card_subject_relation len 🎀🎀 '+str(len(report_card_subject_relation)))
         if inegible_reasons:
-            return {'invalid_courses': inegible_reasons}
+            return {'inegible_reasons': inegible_reasons}
         else:
 
             valid_courses, invalid_courses = get_courses(lead, report_cards, report_card_subject_relation)
@@ -667,6 +722,7 @@ def init_routes(app):
     def check_inegibility_lead(lead, report_cards, report_card_subject_relation):
         lead_id = lead.id
         inegible_reasons = []
+        nonlocal repeat_1_time, repeat_2_times 
         def validate_credits(bac_ids):
             for bac_id in bac_ids:
                 validation_result = check_if_lead_has_validated_all_credits_on_complete_term(report_cards, report_card_subject_relation, bac_id)
@@ -691,7 +747,10 @@ def init_routes(app):
 
         if int(lead.number_of_repeats_n_3) > 2:
             inegible_reasons.append({'id': 'reas0009', 'reason': "Vous avez plus de 2 redoublements durant vos 3 dernières années d'étude"})
-
+        elif int(lead.number_of_repeats_n_3) == 1:
+            repeat_1_time = True
+        elif int(lead.number_of_repeats_n_3) == 2:
+            repeat_2_times = True
         return inegible_reasons
     
     def get_criteria():
@@ -716,7 +775,6 @@ def init_routes(app):
         worst_conditions = {}
 
         # Iterate through the candidate's conditions (as a list of IDs).
-        print('==HAH candidate_profiles 🎀🎀 '+str(candidate_profiles))
         for condition_id in candidate_profiles:
             condition = conditions.get(condition_id)
             if condition:
@@ -742,19 +800,29 @@ def init_routes(app):
                     if criteria_type_id not in worst_conditions or score < worst_conditions[criteria_type_id].score:
                         worst_conditions[criteria_type_id] = condition.as_dict()
 
+        # Reorganize best_conditions and worst_conditions by score
+        best_conditions = dict(sorted(best_conditions.items(), key=lambda item: item[1]['score'], reverse=True))  # High to low
+        worst_conditions = dict(sorted(worst_conditions.items(), key=lambda item: item[1]['score']))  # Low to high
+
+        # Limit best_conditions to top 5 with highest scores
+        if len(best_conditions) > 5:
+            best_conditions = dict(list(best_conditions.items())[:5])
+
+        # Limit worst_conditions to top 5 with lowest scores
+        if len(worst_conditions) > 5:
+            worst_conditions = dict(list(worst_conditions.items())[:5])
+
         # If no applicable scores are found, assume a default score (e.g., 5).
         if not applicable_scores:
             return 5, best_conditions, worst_conditions
 
         # Calculate the final score using a weighted average.
         final_score = weighted_sum / total_weight
-        # mylead = db.session.query(Lead).filter_by(id=lead.id).first()
-
-        # if mylead:
         lead.evaluation_score = round(final_score, 2)
         db.session.commit()
-        #db.session.commit()
+
         return round(final_score, 2), best_conditions, worst_conditions
+
     
     def get_candidate_profile_conditions(lead, report_cards, report_card_subject_relation):
 
@@ -824,26 +892,25 @@ def init_routes(app):
             elif average_mark_most_weighted_subjects < 20:
                 candidate_profile_conditions.append('co0053')
         # IV-Performances stables sur 2 ans/3 ans
-        if len(report_cards) > 1:
-            if not mark_has_progressed_for_2_years_with_no_redoublement:
-                candidate_profile_conditions.append('co0013')
-        if len(report_cards) > 1:
+        if len(report_cards) > 1 and average_mark_most_weighted_subjects< 14:
             if not mark_has_progressed_for_3_years_with_no_redoublement:
                 candidate_profile_conditions.append('co0017')
+            elif len(report_cards) > 2 and not mark_has_progressed_for_2_years_with_no_redoublement:
+                candidate_profile_conditions.append('co0013')
                 
         # V-Progression continue sur 3 ans
         if len(report_cards) > 2:
             if mark_has_progressed_for_3_years_with_no_redoublement and most_recent_average_mark < 14:
                 candidate_profile_conditions.append('co0024')
-            if mark_has_progressed_for_3_years_with_no_redoublement and most_recent_average_mark < 15:
+            elif mark_has_progressed_for_3_years_with_no_redoublement and most_recent_average_mark < 15:
                 candidate_profile_conditions.append('co0030')
-            if mark_has_progressed_for_3_years_with_no_redoublement and most_recent_average_mark < 16:
+            elif mark_has_progressed_for_3_years_with_no_redoublement and most_recent_average_mark < 16:
                 candidate_profile_conditions.append('co0039')
-            if mark_has_progressed_for_3_years_with_no_redoublement and most_recent_average_mark < 17:
+            elif mark_has_progressed_for_3_years_with_no_redoublement and most_recent_average_mark < 17:
                 candidate_profile_conditions.append('co0043')
-            if mark_has_progressed_for_3_years_with_no_redoublement and most_recent_average_mark < 18:
+            elif mark_has_progressed_for_3_years_with_no_redoublement and most_recent_average_mark < 18:
                 candidate_profile_conditions.append('co0049')
-            if mark_has_progressed_for_3_years_with_no_redoublement and most_recent_average_mark < 20:
+            elif mark_has_progressed_for_3_years_with_no_redoublement and most_recent_average_mark < 20:
                 candidate_profile_conditions.append('co0050')
         # VI-Niveau de français
         if lead.french_level:
@@ -852,13 +919,14 @@ def init_routes(app):
             elif lead.french_level >= 'C1':
                 candidate_profile_conditions.append('co0032')
         # VII-Expérience professionnelle
-        if has_work_experience_of_3_months:
-            candidate_profile_conditions.append('co0026')
-        if has_work_experience_of_6_months:
-            candidate_profile_conditions.append('co0035')
+
         if has_work_experience_of_more_than_12_months:
             candidate_profile_conditions.append('co0045')
-            
+        elif has_work_experience_of_6_months:
+            candidate_profile_conditions.append('co0035')    
+        elif has_work_experience_of_3_months:
+            candidate_profile_conditions.append('co0026')  
+
         # VIII-Distinction dans les matières principales
         award = Award.query.filter_by(lead_id=lead.id).first()
         if award:
@@ -870,6 +938,7 @@ def init_routes(app):
         # X-Niveau d'anglais
         if lead.english_level and lead.english_level > 'B1' :
             candidate_profile_conditions.append('co0034')
+
         # XI-Classement
         most_recent_available_report_card_second = get_most_recent_report_card(get_bac_year(most_recent_report_card.bac_id) - 1, report_cards) if most_recent_report_card else None
 
@@ -877,37 +946,77 @@ def init_routes(app):
             if most_recent_report_card.overall_rank and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank):
                 if most_recent_report_card.overall_rank > 20 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank > 20):
                     candidate_profile_conditions.append('co0055')
-                if most_recent_report_card.overall_rank > 15 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank > 15):
+                elif most_recent_report_card.overall_rank > 15 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank > 15):
                     candidate_profile_conditions.append('co0056')
-                if most_recent_report_card.overall_rank > 10 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank > 10):
+                elif most_recent_report_card.overall_rank > 10 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank > 10):
                     candidate_profile_conditions.append('co0057')
-                if most_recent_report_card.overall_rank > 5 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank > 5):
+                elif most_recent_report_card.overall_rank > 5 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank > 5):
                     candidate_profile_conditions.append('co0058')
-                if most_recent_report_card.overall_rank > 3 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank > 3):
+                elif most_recent_report_card.overall_rank > 3 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank > 3):
                     candidate_profile_conditions.append('co0059')
-                if most_recent_report_card.overall_rank == 3 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank == 3):
+                elif most_recent_report_card.overall_rank == 3 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank == 3):
                     candidate_profile_conditions.append('co0060')
-                if most_recent_report_card.overall_rank == 2 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank == 2):
+                elif most_recent_report_card.overall_rank == 2 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank == 2):
                     candidate_profile_conditions.append('co0061')
-                if most_recent_report_card.overall_rank == 1 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank == 1):
-                    candidate_profile_conditions.append('co0061')
+                elif most_recent_report_card.overall_rank == 1 and (most_recent_available_report_card_second is None or most_recent_available_report_card_second.overall_rank == 1):
+                    candidate_profile_conditions.append('co0062')
         # XII-Mention au baccalauréat
         baccalaureat_report_card = next((rc for rc in report_cards if rc.baccalaureat_average_mark_in_20 and rc.baccalaureat_average_mark_in_20 > 0), None)
         baccalaureat_average_mark = None
         if baccalaureat_report_card:
             baccalaureat_average_mark = baccalaureat_report_card.baccalaureat_average_mark_in_20
         if baccalaureat_average_mark :
-            if baccalaureat_average_mark > 14:
-                candidate_profile_conditions.append('co0031')
-            if baccalaureat_average_mark > 16  :
-                candidate_profile_conditions.append('co0044')
-            if baccalaureat_average_mark > 17:
+            if baccalaureat_average_mark >= 17:
                 candidate_profile_conditions.append('co0054') 
+            elif baccalaureat_average_mark >= 16  :
+                candidate_profile_conditions.append('co0044')
+            elif baccalaureat_average_mark >= 14:
+                candidate_profile_conditions.append('co0031')
+
+        # XIII- Extra conditions 
+        if mark_no_progression_for_3_years:
+            if cumulative_mark<13.5:
+                candidate_profile_conditions.append('co0063')
+            elif cumulative_mark<14:
+                candidate_profile_conditions.append('co0078')
+            elif cumulative_mark<15:
+                candidate_profile_conditions.append('co0077')
+            elif cumulative_mark<16:
+                candidate_profile_conditions.append('co0076')
+            elif cumulative_mark<=20:
+                candidate_profile_conditions.append('co0075')
+        elif mark_no_progression_for_2_years:
+            if cumulative_mark<16:
+                candidate_profile_conditions.append('co0063')
+            else:
+                candidate_profile_conditions.append('co0079')
+            candidate_profile_conditions.append('co0064')
+        if rank_MP_top_10:
+            candidate_profile_conditions.append('co0065')
+        if rank_no_progression_for_2_years:
+            if cumulative_mark<16:
+                candidate_profile_conditions.append('co0066')
+            else:
+                candidate_profile_conditions.append('co0080')
+        if blank_year_2_times_and_more:
+            candidate_profile_conditions.append('co0068')
+        elif blank_year_1_time:
+            candidate_profile_conditions.append('co0067')
+        if repeat_2_times:
+            candidate_profile_conditions.append('co0070')
+        elif repeat_1_time:
+            candidate_profile_conditions.append('co0069')
+        if TP_subjects_validated:
+            candidate_profile_conditions.append('co0071')
+        elif TP_subjects_insufficient_mark:
+            candidate_profile_conditions.append('co0072')
+        if no_working_experience:
+            candidate_profile_conditions.append('co0073')
+        elif no_working_experience_proof:
+            candidate_profile_conditions.append('co0074')
+
         return candidate_profile_conditions
       
-
-
-
     def get_mark_most_weighted_subjects(report_cards, report_card_subject_relation):
         """Get the general average mark of the 3 most weighted subjects per year of the last 2 available years"""
         most_weighted_subjects = []
@@ -1046,7 +1155,8 @@ def init_routes(app):
         course_level_value_relation = CourseLevelRelation.query.filter(
             CourseLevelRelation.course_id.in_(valid_course_ids)
         ).all()
-
+        # make sure that in invalid_courses, for each reason, we have maximum 5 courses
+        
         purge_courses_from_course_level_value_relation(lead, report_cards, valid_courses, invalid_courses, course_level_value_relation, lead_level_value_relation)
         purge_courses_from_course_subject_relation(report_cards, report_card_subjects, valid_courses, invalid_courses, course_subject_relation)
 
@@ -1055,12 +1165,12 @@ def init_routes(app):
         #print(f"Loading time reorder_valid_courses_by_priority: {loading_time:.2f} seconds")
         # Remove invalid_courses items with empty courses
         invalid_courses = [item for item in invalid_courses if item['courses']]
-
+        invalid_courses = limit_courses_per_reason(invalid_courses)
         # Convert courses in invalid_courses to dictionary format
         for invalid_course in invalid_courses:
             invalid_course['courses'] = [course.as_dict() for course in invalid_course['courses']]
 
-        return [course.as_dict() for course in valid_courses], invalid_courses[:20]
+        return [course.as_dict() for course in valid_courses], invalid_courses[:5]
 
           
     def get_courses_where_course_names_are_similar_to_lead_degree_name(lead_level_value_relation, initial_courses):
@@ -1220,6 +1330,19 @@ def init_routes(app):
         # Return only the first 20 top courses
         return top_courses[:20]
 
+    def limit_courses_per_reason(invalid_courses, max_courses=5):
+        limited_courses = []
+        
+        for category in invalid_courses:
+            # Create a new dictionary with the same reason
+            limited_category = {
+                'reason': category['reason'],
+                'courses': category['courses'][:max_courses]  # Take only first 5 courses
+            }
+            limited_courses.append(limited_category)
+        
+        return limited_courses
+    
     def add_invalid_course_reason(reason, invalid_courses):
         invalid_courses_by_reason = next((item for item in invalid_courses if item['reason'] == reason), None)
         if not invalid_courses_by_reason:
@@ -1229,12 +1352,32 @@ def init_routes(app):
     
     def exclude_courses_from_course_criteria(lead, work_experience, valid_courses, invalid_courses, report_cards):
         lead_id = lead.id
+        nonlocal no_working_experience
 
         def remove_invalid_courses(valid_courses, invalid_courses_by_reason, levels):
-            for course in list(valid_courses):
-                if course.professional_experience_requirement_level in levels:
-                    valid_courses.remove(course)
-                    invalid_courses_by_reason['courses'].append(course)
+            nonlocal no_working_experience, no_working_experience_proof
+
+            # Ensure valid_courses is iterable, if not return early
+            if not isinstance(valid_courses, (list, set, tuple)):
+                return
+
+            # Find invalid courses that match the levels and remove them from valid_courses
+            invalid_courses = {course for course in valid_courses if course.professional_experience_requirement_level in levels}
+
+            # Update flags based on professional experience requirement levels
+            no_working_experience = any(course.professional_experience_requirement_level == 1 for course in invalid_courses)
+            no_working_experience_proof = any(course.professional_experience_requirement_level == 0.5 for course in invalid_courses)
+
+            # Add invalid courses to invalid_courses_by_reason
+            invalid_courses_by_reason['courses'].extend(invalid_courses)
+
+            # Remove invalid courses from valid_courses
+            valid_courses -= invalid_courses  # Use set difference to remove invalid courses from the set
+
+            # Reset no_working_experience if no_working_experience_proof is set
+            if no_working_experience_proof:
+                no_working_experience = False
+
 
         def add_invalid_course_reason(reason, invalid_courses):
             invalid_courses_by_reason = next((item for item in invalid_courses if item['reason'] == reason), None)
@@ -1244,22 +1387,28 @@ def init_routes(app):
             return invalid_courses_by_reason
 
         def check_work_experience():
+            nonlocal has_work_experience_of_3_months, has_work_experience_of_6_months, has_work_experience_of_more_than_12_months
             if work_experience and not work_experience.can_prove:
                 reason = 'Vous n\'avez pas pu justifier votre expérience professionnelle'
+                #no_working_experience_proof = True
                 invalid_courses_by_reason = add_invalid_course_reason(reason, invalid_courses)
                 remove_invalid_courses(valid_courses, invalid_courses_by_reason, [1])
 
             if not work_experience:
                 reason = 'Ces formations nécessitent une expérience professionnelle'
+                #no_working_experience = True
                 invalid_courses_by_reason = add_invalid_course_reason(reason, invalid_courses)
                 remove_invalid_courses(valid_courses, invalid_courses_by_reason, [0.5, 1])
-            elif work_experience: 
-                experience_duration = (work_experience.end_date - work_experience.start_date).days / 30  # Convert days to months
-                if experience_duration >= 3:
-                    has_work_experience_of_3_months = True
-                if experience_duration >= 6:
-                    has_work_experience_of_6_months = True
-                if experience_duration > 12:
+            elif work_experience and work_experience.start_date: 
+                if work_experience.end_date is not None:
+                    experience_duration = (work_experience.end_date - work_experience.start_date).days / 30  # Convert days to months
+                    if experience_duration >= 3:
+                        has_work_experience_of_3_months = True
+                    if experience_duration >= 6:
+                        has_work_experience_of_6_months = True
+                    if experience_duration > 12:
+                        has_work_experience_of_more_than_12_months = True
+                else: 
                     has_work_experience_of_more_than_12_months = True
 
         def check_language_requirements():
@@ -1280,6 +1429,8 @@ def init_routes(app):
                             invalid_courses_by_reason['courses'].append(course)
 
         def check_progression():
+            nonlocal mark_has_progressed_for_2_years_with_no_redoublement, mark_has_progressed_for_3_years_with_no_redoublement, mark_no_progression_for_2_years
+            nonlocal mark_no_progression_for_3_years, rank_no_progression_for_2_years, repeat_1_time, repeat_2_times
             bac_map = {
                 'bac00010': ['bac00010', 'bac00009', 'bac00008'],
                 'bac00009': ['bac00009', 'bac00008', 'bac00007'],
@@ -1316,15 +1467,20 @@ def init_routes(app):
             mark_has_progressed_for_3_years = has_progressed_for_years(3)
 
             reason = 'Vous n\'avez pas progressé entre deux années consécutives'
-            if mark_has_progressed_for_2_years and lead.number_of_repeats_n_3 > 1:
-                reason = "Malgré une progression de vos notes, vous avez redoublé trop de fois pour pouvoir intégrer ces formations"
-                mark_has_progressed_for_2_years = False
+            if mark_has_progressed_for_2_years and lead.number_of_repeats_n_3 > 0:
+                if lead.number_of_repeats_n_3 > 1:
+                    reason = "Malgré une progression de vos notes, vous avez redoublé trop de fois pour pouvoir intégrer ces formations"
+                    repeat_2_times = True
+                    mark_has_progressed_for_2_years = False
+                elif lead.number_of_repeats_n_3 == 1:
+                    repeat_1_time = True
             if mark_has_progressed_for_2_years and lead.number_of_repeats_n_3 == 0:
                 mark_has_progressed_for_2_years_with_no_redoublement = True
             if mark_has_progressed_for_3_years and lead.number_of_repeats_n_3 == 0:
                 mark_has_progressed_for_3_years_with_no_redoublement = True
 
             if not mark_has_progressed_for_2_years:
+                mark_no_progression_for_2_years = True
                 invalid_courses_by_reason = add_invalid_course_reason(reason, invalid_courses)
                 for course in list(valid_courses):
                     if course.is_progression_mandatory:
@@ -1333,6 +1489,8 @@ def init_routes(app):
 
             if not mark_has_progressed_for_3_years:
                 reason = 'Vous n\'avez pas progressé entre trois années consécutives'
+                mark_no_progression_for_2_years = False
+                mark_no_progression_for_3_years = True
                 invalid_courses_by_reason = add_invalid_course_reason(reason, invalid_courses)
                 for course in list(valid_courses):
                     if course.check_grade_since_n3:
@@ -1340,6 +1498,7 @@ def init_routes(app):
                         invalid_courses_by_reason['courses'].append(course)
 
         def check_ranking():
+            nonlocal rank_no_progression_for_2_years
             bac_map = {
                 'bac00010': ['bac00010', 'bac00009', 'bac00008'],
                 'bac00009': ['bac00009', 'bac00008', 'bac00007'],
@@ -1368,6 +1527,7 @@ def init_routes(app):
 
             if not rank_has_progressed_for_2_years:
                 reason = 'Votre rang n\'a pas évolué entre deux années consécutives'
+                rank_no_progression_for_2_years = True
                 invalid_courses_by_reason = add_invalid_course_reason(reason, invalid_courses)
                 for course in list(valid_courses):
                     if course.is_ranking_mandatory:
@@ -1424,7 +1584,7 @@ def init_routes(app):
                         invalid_courses_by_reason['courses'].append(course)
 
         new_course_subject_relations = [relation for relation in course_subject_relation if relation.course_id in [course.id for course in list(valid_courses)] and relation.subject.is_tech]
-
+        nonlocal rank_MP_top_10, TP_subjects_insufficient_mark, TP_subjects_validated
         for new_subject_relation in new_course_subject_relations:
             if new_subject_relation.subject_id == 'suj0212':  # MP
                 for report_card in report_cards:
@@ -1480,11 +1640,20 @@ def init_routes(app):
                     ) and report_card_subject_relation.rank > 10:
                         if new_subject_relation.course_id and new_subject_relation.course in valid_courses:
                             reason = "Votre rang dans les matières principales est supérieur à 10."
+                            rank_MP_top_10 = True
                             invalid_courses_by_reason = add_invalid_course_reason(reason, invalid_courses)
                             valid_courses.remove(new_subject_relation.course)
                             invalid_courses_by_reason['courses'].append(new_subject_relation.course)
 
-        if not any(report_card_subject.is_pratical_subject for report_card_subject in report_card_subjects):
+        practical_subjects = [subject for subject in report_card_subjects if subject.is_pratical_subject]
+        if practical_subjects:
+            average_mark = sum(subject.mark_in_20 for subject in practical_subjects) / len(practical_subjects)
+            if average_mark < 12:
+                TP_subjects_insufficient_mark = True
+            else:
+                TP_subjects_validated = True
+
+        if not practical_subjects:
             for course in list(valid_courses)[:]:
                 if course.check_practical_work_experience:
                     valid_courses.remove(course)

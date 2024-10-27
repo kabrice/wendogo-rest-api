@@ -7,7 +7,6 @@ class EvaluationCriteria:
             {"id": "cri003", "name": "Expérience professionnelle"},
             {"id": "cri004", "name": "Autres critères"}
         ]
-
         conditions = [ 
             # I-Score=0 
             # 1.Academic criteria
@@ -94,14 +93,38 @@ class EvaluationCriteria:
             {"id": "co0053", "name": "Moyenne matières principales > 18", "description": "Le candidat a une moyenne générale > 18/20 dans ses matières principales durant les derniers trimestres/semestres", "score": 5, "criteria_type_id": "cri001", "comment": "des 2 dernières années"},
             {"id": "co0054", "name": "Mention excellente au baccalauréat (>17)", "description": "Le candidat a obtenu une mention excellente au baccalauréat", "score": 5, "criteria_type_id": "cri001", "comment": "si ce candidat est en licence 2 ou moins"},
             # Classement
-            {"id": "co0055", "name": "Classement au > 20", "description": "Le candidat se situe au dessus de la 20ème place", "score": 1, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible"},
-            {"id": "co0056", "name": "Classement au > 15", "description": "Le candidat se situe au dessus de la 15ème place", "score": 2, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible"},
-            {"id": "co0057", "name": "Classement au > 10", "description": "Le candidat se situe au dessus de la 00ème place", "score": 2.5, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible si disponible"},
-            {"id": "co0058", "name": "Classement au > 5", "description": "Le candidat se situe au dessus de la 5ème place", "score": 3, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible"},
-            {"id": "co0059", "name": "Classement au > 3", "description": "Le candidat se situe au dessus de 3ème place", "score": 3.5, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible"},
-            {"id": "co0060", "name": "Classement au = 3", "description": "Le candidat occupe la 3ème place", "score": 4, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible"},
-            {"id": "co0061", "name": "Classement au = 2", "description": "Le candidat occupe la 2ème place", "score": 4.5, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible"}, 
-            {"id": "co0061", "name": "Classement au = 1", "description": "Le candidat occupe la 1ère place", "score": 5, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible"},        
+            {"id": "co0055", "name": "Classement > 20", "description": "Le candidat se situe au dessus de la 20ème place", "score": 1, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible"},
+            {"id": "co0056", "name": "Classement > 15", "description": "Le candidat se situe au dessus de la 15ème place", "score": 2, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible"},
+            {"id": "co0057", "name": "Classement > 10", "description": "Le candidat se situe au dessus de la 00ème place", "score": 2.5, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible si disponible"},
+            {"id": "co0058", "name": "Classement > 5", "description": "Le candidat se situe au dessus de la 5ème place", "score": 3, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible"},
+            {"id": "co0059", "name": "Classement > 3", "description": "Le candidat se situe au dessus de 3ème place", "score": 3.5, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible"},
+            {"id": "co0060", "name": "Classement = 3", "description": "Le candidat occupe la 3ème place", "score": 4, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible"},
+            {"id": "co0061", "name": "Classement = 2", "description": "Le candidat occupe la 2ème place", "score": 4.5, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible"}, 
+            {"id": "co0062", "name": "Classement = 1", "description": "Le candidat occupe la 1ère place", "score": 5, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible"}, 
+
+            # Extra academic criteria
+            {"id": "co0063", "name": "Pas de progression de la moyenne durant 3 années", "description": "Vous n\'avez pas progressé entre trois années consécutives", "score": 1, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible"},        
+            {"id": "co0064", "name": "Pas de progression de la moyenne durant 2 années", "description": "Vous n\'avez pas progressé entre deux années consécutives", "score": 2, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible"},        
+            {"id": "co0065", "name": "Classement matières principales > 10", "description": "Votre rang dans les matières principales est supérieur à 10", "score": 2, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible"},        
+            {"id": "co0066", "name": "Classement non evolutif sur 2ans", "description": "Votre rang n\'a pas évolué entre deux années consécutives", "score": 2, "criteria_type_id": "cri001", "comment": "sur les 2 dernières années si disponible"}, 
+
+            # Extra redoublement
+            base yourself on the name to update the description  here
+            {"id": "co0067", "name": "1 année blanche", "description": "Le candidat a une année blanche dans son parcours", "score": 2, "criteria_type_id": "cri001", "comment": ""},        
+            {"id": "co0068", "name": "Plus de 2 années blanches", "description": "Le candidat a plus de deux années blanches dans son parcours", "score": 1, "criteria_type_id": "cri001", "comment": ""},       
+            {"id": "co0069", "name": "1 redoublement", "description": "Le candidat a redoublé une fois", "score": 2, "criteria_type_id": "cri001", "comment": ""},       
+            {"id": "co0070", "name": "2 redoublement", "description": "Le candidat a redoublé deux fois", "score": 0.5, "criteria_type_id": "cri001", "comment": ""},
+            {"id": "co0071", "name": "Travaux pratique validés", "description": "Le candidat a validé des travaux pratiques", "score": 3, "criteria_type_id": "cri001", "comment": ""},  
+            {"id": "co0072", "name": "Travaux pratique notes inssufisantes", "description": "Le candidat a des notes insuffisantes en travaux pratiques", "score": 1, "criteria_type_id": "cri001", "comment": ""},
+            {"id": "co0073", "name": "Pas d'expérience Professionnelle", "description": "Le candidat n'a pas d'expérience professionnelle ou extrascolaire", "score": 2, "criteria_type_id": "cri003", "comment": ""},
+
+            {"id": "co0075", "name": "Pas de progression de la moyenne durant 3 années", "description": "Vous n\'avez pas progressé entre trois années consécutives", "score": 2.25, "criteria_type_id": "cri001", "comment": "co0063+1.25 si Moyenne cumulée > 16 sur 3 ans"},
+            {"id": "co0076", "name": "Pas de progression de la moyenne durant 3 années", "description": "Vous n\'avez pas progressé entre trois années consécutives", "score": 2, "criteria_type_id": "cri001", "comment": "co0063+1 si Moyenne cumulée > 15 sur 3 ans"},
+            {"id": "co0077", "name": "Pas de progression de la moyenne durant 3 années", "description": "Vous n\'avez pas progressé entre trois années consécutives", "score": 1.75, "criteria_type_id": "cri001", "comment": "co0063+0.75 si Moyenne cumulée > 14 sur 3 ans"},
+            {"id": "co0078", "name": "Pas de progression de la moyenne durant 3 années", "description": "Vous n\'avez pas progressé entre trois années consécutives", "score": 1.25, "criteria_type_id": "cri001", "comment": "co0063+0.25 si Moyenne cumulée > 13.5 sur 3 ans"},
+            
+            {"id": "co0079", "name": "Pas de progression de la moyenne durant 2 années", "description": "Vous n\'avez pas progressé entre deux années consécutives", "score": 2.25, "criteria_type_id": "cri001", "comment": "co0064+0.25 si Moyenne cumulée > 16 sur 3 ans"},        
+            {"id": "co0080", "name": "Classement non evolutif sur 2 ans", "description": "Votre rang n\'a pas évolué entre deux années consécutives", "score": 2.25, "criteria_type_id": "cri001", "comment": "co0066+0.25 si Moyenne cumulée > 16 sur 3 anse"}, 
         ]
 
         self.academic_criteria = {
@@ -188,3 +211,6 @@ candidate_profile = "Le candidat a une moyenne générale < 10/20; Le candidat a
 evaluator = EvaluationCriteria()
 score = evaluator.evaluate(candidate_profile)
 print(f"Le score final du candidat est: {score}/5")
+
+Mine : ['co0036', 'co0028', 'co0038', 'co0013', 'co0017', 'co0032', 'co0046', 'co0033', 'co0034', 'co0059']
+Computer : ['co0036', 'co0028', 'co0037', 'co0039', 'co0043', 'co0049', 'co0050', 'co0059', 'co0032', 'co0034', 'co0045', 'co0046', 'co0033']
