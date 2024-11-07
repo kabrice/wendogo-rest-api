@@ -11,5 +11,8 @@ class LeadDAO:
     
     def get_by_id(self, id):
         return Lead.query.get(id)
+    
+    def get_by_user_id(self, user_id):
+        return Lead.query.filter_by(user_id=user_id).first()
 
 lead_dao = LeadDAO(Lead)

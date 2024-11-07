@@ -18,9 +18,9 @@ class CourseLevelRelation(db.Model):
     is_L2 = db.Column(db.Boolean, nullable=True, default=False) # True => Minimum general average mark is applicable for L2 (Licence 2)
     is_L3 = db.Column(db.Boolean, nullable=True, default=False) # True => Minimum general average mark is applicable for L3 (Licence 3)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime)
-    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1) 
 
     level_value = db.relationship('LevelValue', backref='course_level_relation') 
     course = db.relationship('Course', backref='course_level_relation')

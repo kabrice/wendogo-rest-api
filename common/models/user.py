@@ -16,14 +16,15 @@ class User(db.Model):
     postal_code = db.Column(db.String(10), nullable=True) 
     city = db.Column(db.String(35), nullable=True)#2
     description = db.Column(db.String(2500), nullable=True)#2
+    work_description = db.Column(db.String(2500), nullable=True)#2
+    tourism_description = db.Column(db.String(2500), nullable=True)#2
+    family_description = db.Column(db.String(2500), nullable=True)#2
     email = db.Column(db.String(50), nullable=True)#1
     firstname = db.Column(db.String(46), nullable=True)#1
     lastname = db.Column(db.String(46), nullable=True)#1
     birthdate = db.Column(db.Date)#1
-    salutation = db.Column(db.String(15), nullable=True)#1
-    created_at = db.Column(db.DateTime, default=datetime.utcnow())
-    country = db.Column(db.String(4), nullable=True)
-    updated_at = db.Column(db.DateTime)
+    salutation = db.Column(db.String(15), nullable=True)#1 
+    country = db.Column(db.String(4), nullable=True) 
     phone = db.Column(db.String(25), nullable=True)
     has_whatsapp = db.Column(db.Boolean, unique=False, default=False, nullable=True)
     whatsapp_verification_attempt = db.Column(db.Integer, default=0)
@@ -35,8 +36,10 @@ class User(db.Model):
     lead_status_id = db.Column(db.String(8), db.ForeignKey('lead_status.id'), nullable=True)
     password = db.Column(db.String(255), nullable=True)
     parent_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Parent user (Parent user can fill the form for his child)
-    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1) 
 
     def __init__(self, firstname='', lastname='', salutation='', city='', email='', phone='', occupation='', description='', country=''):
         self.firstname = firstname

@@ -11,9 +11,9 @@ class Account(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     lead_id = db.Column(db.Integer, db.ForeignKey('lead.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime)
-    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1) 
 
     def as_dict(self):
         excluded_fields = ['created_at', 'updated_at', 'created_by', 'updated_by']

@@ -16,10 +16,9 @@ class LeadLevelValueRelation(db.Model):
     school_year_id = db.Column(db.String(8), db.ForeignKey('school_year.id'), nullable=False) # l'année d'étude la plus récente
     is_current_year = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime)
-    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1) 
     # Add relationship to external_degree for easy access to external_degree.name
     external_degree = db.relationship('ExternalDegree', backref='lead_level_value_relation')
     level_value = db.relationship('LevelValue', backref='lead_level_value_relation')

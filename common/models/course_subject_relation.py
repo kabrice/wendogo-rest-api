@@ -15,9 +15,9 @@ class CourseSubjectRelation(db.Model):
     priority = db.Column(db.Integer, nullable=False) # ordre d'importance (exemple : 1 most important, and then 2, 3, etc.)
     check_professional_experience = db.Column(db.Boolean, nullable=False) # True => Expérience professionnelle dans la matière est requise pour accéder à la formation
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime)
-    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1) 
 
     course = db.relationship('Course', backref=db.backref('course_subject_relation', lazy=True))
     subject = db.relationship('Subject', backref=db.backref('course_subject_relation', lazy=True))

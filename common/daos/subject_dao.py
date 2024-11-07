@@ -21,6 +21,9 @@ class SubjectDAO:
             .filter(filter_condition, self.model.is_tech.is_(False))
             .all()
         ]
+    def get_all_subjects(self):
+        """Fetch all subjects."""
+        return [subject.as_dict() for subject in self.model.query.all()]
 
     def get_all(self):
         """Fetch all non-technical subjects."""

@@ -34,12 +34,12 @@ class Course(db.Model):
     major_id = db.Column(db.String(8), db.ForeignKey('major.id'), nullable=True)
     level_id = db.Column(db.String(8), db.ForeignKey('level.id'), nullable=True) # catégorie d'entrée dans le fichier Etude_France_Canada : Niveau d'entrée dans l'établissement
     course_type_id = db.Column(db.String(8), db.ForeignKey('course_type.id'), nullable=True)
-    educational_language_id = db.Column(db.String(8), db.ForeignKey('spoken_language.id'), nullable=True)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime)
+    educational_language_id = db.Column(db.String(8), db.ForeignKey('spoken_language.id'), nullable=True) 
     comments = db.Column(db.String(1024), nullable=True)
-    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1) 
 
     # Define a hash method based on unique attributes (e.g., course ID)
     def __hash__(self):

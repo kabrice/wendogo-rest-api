@@ -35,9 +35,13 @@ from collections import defaultdict
 from functools import lru_cache
 import re
 import time
-from typing import Dict, Any 
+from typing import Dict, Any, Optional, List, Set, Tuple
 from contextlib import contextmanager
 import json
+from dataclasses import dataclass
+import random
+#from typing import Dict, List, Optional, Set, Tuple
+
 
 @contextmanager
 def db_transaction():
@@ -53,9 +57,7 @@ def db_transaction():
         raise
 class DatabaseError(Exception):
     """Custom exception for database operations"""
-    def __init__(self, message, db, request):
-        super().__init__(message)
-        Helper.logError(message ,db, Log, request)
+    pass
 
 
 def init_routes(app):
@@ -100,7 +102,9 @@ def init_routes(app):
     def edit_user():
         _json = request.json
         phone = _json.get('phone')
-        user = User.query.filter_by(phone = phone).first()
+        user = User.query.filter_by(id=_json.get('userId')).first() 
+        if not user:
+            user = User.query.filter_by(phone = phone).first()
         if user is None:
             return jsonify ({"error": "the user doesn't exist", "status": False})
         for key in _json:
@@ -240,6 +244,8 @@ def init_routes(app):
 
         user = User.query.filter_by(phone=user_payload.get('phone')).first()
         if not user:
+            user = User.query.filter_by(id=user_payload.get('userId')).first()
+        if not user:
             return jsonify({"error": "User not found", "status": False}), 404
 
         try:
@@ -249,8 +255,9 @@ def init_routes(app):
             delete_and_create_json_input(lead.id, user_payload)
             delete_and_create_passport(user.id, user_payload)
             external_degree = update_or_create_external_degree(user_payload)
-            if user_payload.get('programDomainObj', {}).get('id'):
-                delete_and_create_lead_level_relation(lead.id, user_payload, external_degree.id)
+            if user_payload.get('programDomainObj', {}) is not None:
+                if user_payload.get('programDomainObj', {}).get('id') :
+                    delete_and_create_lead_level_relation(lead.id, user_payload, external_degree.id)
             delete_and_create_lead_subject_relations(lead.id, user_payload)
             
             delete_all_report_cards_and_report_card_subject_relations(lead.id)
@@ -263,6 +270,7 @@ def init_routes(app):
 
             """II - Process to generate courses"""
             course_results = generate_courses(lead)
+            course_results['user_id'] = user.id
             return jsonify(course_results)
         except SQLAlchemyError as e:
             db.session.rollback()
@@ -316,7 +324,8 @@ def init_routes(app):
         lead.can_prove_french_level = payload.get('haveDoneFrenchTest')
         lead.english_level = get_english_level(payload.get('selectedEnglishLevel'))
         lead.can_prove_english_level = payload.get('canJustifyEnglishLevel')
-        lead.other_spoken_language_id = payload.get('selectedOtherSpokenLanguage', {}).get('id')
+        if(payload.get('selectedOtherSpokenLanguage', {}).get('id') != "none"):
+            lead.other_spoken_language_id = payload.get('selectedOtherSpokenLanguage', {}).get('id')
         lead.other_spoken_language_level = get_language_level(payload.get('selectedOtherLanguageLevel'))
         lead.can_prove_spoken_language_level = payload.get('canJustifyOtherLanguage')
         lead.number_of_repeats_n_3 = payload.get('classRepetitionNumber')
@@ -332,21 +341,63 @@ def init_routes(app):
         
         return lead
 
-    def delete_and_create_json_input(lead_id, payload):
-        # Delete any existing JSON input associated with the lead
-        JsonInput.query.filter_by(lead_id=lead_id).delete()
-        last_json_input = JsonInput.query.order_by(JsonInput.id.desc()).first()
-        new_json_input_id = (last_json_input.id + 1) if last_json_input else 1
-        # Minify the payload
-        minified_payload = json.dumps(payload, separators=(',', ':'))
-        # Create a new JSON input
-        json_input = JsonInput( 
-            id=new_json_input_id,
-            lead_id=lead_id,
-            content=minified_payload
-        )
-        db.session.add(json_input)
-        db.session.commit()
+    def delete_and_create_json_input(lead_id: str, payload: Dict[str, Any]) -> JsonInput:
+        """
+        Delete existing JSON input for a lead and create a new one.
+        
+        Args:
+            lead_id: The ID of the lead
+            payload: The JSON payload to store
+            
+        Returns:
+            JsonInput: The newly created JSON input record
+            
+        Raises:
+            DatabaseError: If database operations fail
+            ValueError: If input validation fails
+        """
+        try:
+            # Input validation
+            if not lead_id or not payload:
+                raise ValueError("Lead ID and payload are required")
+
+            with db_transaction():
+                # Get next ID using database sequence if available
+                # Or use the current implementation
+                next_id = get_next_json_input_id()
+                
+                # Delete existing records and create new one in a single transaction
+                JsonInput.query.filter_by(lead_id=lead_id).delete()
+                
+                # Create new JSON input with minified payload
+                new_json_input = JsonInput(
+                    id=next_id,
+                    lead_id=lead_id,
+                    content=json.dumps(payload, separators=(',', ':'))
+                )
+                
+                db.session.add(new_json_input)
+                return new_json_input
+                
+        except json.JSONDecodeError:
+            raise ValueError("Invalid JSON payload")
+        except ValueError as e:
+            raise ValueError(f"Validation error: {str(e)}")
+        except Exception as e:
+            raise DatabaseError(f"Failed to update JSON input: {str(e)}")
+
+    def get_next_json_input_id() -> str:
+        """Get the next available JSON input ID"""
+        try:
+            # Using a database sequence would be better, but if not available:
+            last_record = JsonInput.query\
+                .with_entities(JsonInput.id)\
+                .order_by(JsonInput.id.desc())\
+                .first()
+            
+            return str(int(last_record.id) + 1) if last_record else "1"
+        except Exception as e:
+            raise DatabaseError(f"Failed to generate next ID: {str(e)}")
 
     def delete_all_report_cards_and_report_card_subject_relations(lead_id):
         # Delete all report card subject relations in one go
@@ -362,145 +413,581 @@ def init_routes(app):
 
 
 
-    def delete_and_create_passport(user_id, payload):
-        # Delete any existing passport associated with the user
-        Passport.query.filter_by(user_id=user_id).delete()
+    class PassportError(Exception):
+        """Custom exception for passport-related errors"""
+        pass
+
+    def parse_date(date_str: str) -> Optional[datetime]:
+        """
+        Parse date string to datetime object.
         
-        passport_details = payload.get('passportDetails')
-        if passport_details:
-            # Retrieve the highest existing ID for Passport and increment it
-            last_passport = Passport.query.order_by(Passport.id.desc()).first()
-            new_passport_id = (last_passport.id + 1) if last_passport else 1
+        Args:
+            date_str: Date string in format YYYY-MM-DD
+            
+        Returns:
+            datetime object or None if invalid date
+        """
+        if not date_str:
+            return None
+            
+        try:
+            return datetime.strptime(date_str, '%Y-%m-%d')
+        except ValueError:
+            raise PassportError(f"Invalid date format: {date_str}. Expected format: YYYY-MM-DD")
 
-            # Create a new Passport with the incremented ID
-            passport = Passport(
-                id=new_passport_id,
-                user_id=user_id,
-                delivery_date=parse_date(passport_details.get('startDate')),
-                valid_until=parse_date(passport_details.get('endDate'))
-            )
-            db.session.add(passport)
-            db.session.commit()
+    def validate_passport_details(details: Dict) -> None:
+        """Validate passport details"""
+        if not details:
+            raise PassportError("Passport details are required")
+            
+        required_fields = ['startDate', 'endDate']
+        missing_fields = [field for field in required_fields if not details.get(field)]
+        
+        if missing_fields:
+            raise PassportError(f"Missing required fields: {', '.join(missing_fields)}")
+            
+        start_date = parse_date(details.get('startDate'))
+        end_date = parse_date(details.get('endDate'))
+        
+        if start_date and end_date and start_date > end_date:
+            raise PassportError("Delivery date cannot be after expiration date")
+
+    def get_next_passport_id() -> int:
+        """Get next available passport ID"""
+        try:
+            last_passport = Passport.query\
+                .with_entities(Passport.id)\
+                .order_by(Passport.id.desc())\
+                .first()
+            return (last_passport.id + 1) if last_passport else 1
+        except Exception as e:
+            raise DatabaseError(f"Failed to generate next ID: {str(e)}")
+
+    def delete_and_create_passport(user_id: str, payload: Dict) -> Optional[Passport]:
+        """
+        Delete existing passport for a user and create a new one if details provided.
+        
+        Args:
+            user_id: User ID
+            payload: Dictionary containing passport details
+            
+        Returns:
+            New Passport object or None if no passport details provided
+            
+        Raises:
+            DatabaseError: If database operations fail
+            PassportError: If passport validation fails
+            ValueError: If input validation fails
+        """
+        try:
+            if not user_id:
+                raise ValueError("User ID is required")
+
+            passport_details = payload.get('passportDetails')
+            if not passport_details:
+                # If no passport details, just delete existing passport
+                with db_transaction():
+                    Passport.query.filter_by(user_id=user_id).delete()
+                return None
+
+            # Validate passport details
+            validate_passport_details(passport_details)
+
+            with db_transaction():
+                # Delete existing passport and create new one in single transaction
+                Passport.query.filter_by(user_id=user_id).delete()
+                
+                new_passport = Passport(
+                    id=get_next_passport_id(),
+                    user_id=user_id,
+                    delivery_date=parse_date(passport_details['startDate']),
+                    valid_until=parse_date(passport_details['endDate'])
+                )
+                
+                db.session.add(new_passport)
+                return new_passport
+
+        except (ValueError, PassportError) as e:
+            raise
+        except Exception as e:
+            raise DatabaseError(f"Failed to update passport: {str(e)}")
 
 
-    def update_or_create_external_degree(payload):
-        degree_name = payload.get('degreeExactNameValue', '').strip()
+    class DegreeError(Exception):
+        """Custom exception for degree-related errors"""
+        pass 
 
-        # Check if the degree already exists
-        existing_degree = ExternalDegree.query.filter(ExternalDegree.name.ilike(degree_name)).first()
-        if not existing_degree:
-            # Retrieve the highest existing ID for ExternalDegree and increment it
-            last_degree = ExternalDegree.query.order_by(ExternalDegree.id.desc()).first()
-            new_degree_id = (last_degree.id + 1) if last_degree else 1
+    def validate_degree_name(name: str) -> str:
+        """
+        Validate and clean degree name.
+        
+        Args:
+            name: The degree name to validate
+            
+        Returns:
+            Cleaned degree name
+            
+        Raises:
+            DegreeError: If name is invalid
+        """
+        if not name:
+            raise DegreeError("Degree name is required")
+            
+        cleaned_name = name.strip()
+        if len(cleaned_name) < 2:
+            raise DegreeError("Degree name is too short")
+        
+        if len(cleaned_name) > 1024:  # Adjust max length as needed
+            raise DegreeError("Degree name is too long")
+            
+        return cleaned_name
 
-            # Create a new ExternalDegree with the incremented ID
-            external_degree = ExternalDegree(id=new_degree_id, name=degree_name)
-            db.session.add(external_degree)
-            db.session.commit()
-            return external_degree
+    def get_next_degree_id() -> int:
+        """Get next available degree ID"""
+        try:
+            last_degree = ExternalDegree.query\
+                .with_entities(ExternalDegree.id)\
+                .order_by(ExternalDegree.id.desc())\
+                .first()
+            return (last_degree.id + 1) if last_degree else 1
+        except Exception as e:
+            raise DegreeError(f"Failed to generate next ID: {str(e)}")
 
-        return existing_degree
+    def find_existing_degree(name: str) -> Optional[ExternalDegree]:
+        """Find existing degree by name (case insensitive)"""
+        try:
+            return ExternalDegree.query\
+                .filter(ExternalDegree.name.ilike(name))\
+                .first()
+        except SQLAlchemyError as e:
+            raise DegreeError(f"Error searching for existing degree: {str(e)}")
+
+    def update_or_create_external_degree(payload: dict) -> ExternalDegree:
+        """
+        Update existing degree or create new one.
+        
+        Args:
+            payload: Dictionary containing degree details
+            
+        Returns:
+            ExternalDegree: Updated or created degree
+            
+        Raises:
+            DegreeError: If operation fails
+        """
+        try:
+            # Extract and validate degree name
+            raw_name = payload.get('degreeExactNameValue', '')
+            degree_name = validate_degree_name(raw_name)
+            
+            # Check for existing degree
+            existing_degree = find_existing_degree(degree_name)
+            if existing_degree:
+                return existing_degree
+                
+            # Create new degree
+            with db_transaction():
+                new_degree = ExternalDegree(
+                    id=get_next_degree_id(),
+                    name=degree_name
+                )
+                db.session.add(new_degree)
+                return new_degree
+                
+        except DegreeError:
+            raise
+        except Exception as e:
+            raise DegreeError(f"Unexpected error: line - {str(e.__traceback__.tb_lineno)}: {str(e)}")
 
 
-    def delete_and_create_lead_level_relation(lead_id, payload, external_degree_id):
-        # Delete existing relations for the given lead
-        LeadLevelValueRelation.query.filter_by(lead_id=lead_id).delete()
+    class RelationError(Exception):
+        """Custom exception for lead-level relation errors"""
+        pass
 
-        # Retrieve the highest existing ID for LeadLevelValueRelation and start incrementing from there
-        last_relation = LeadLevelValueRelation.query.order_by(LeadLevelValueRelation.id.desc()).first()
-        new_relation_id = (last_relation.id + 1) if last_relation else 1
+    def validate_relation_data(
+        lead_id: str,
+        payload: Dict,
+        external_degree_id: str
+    ) -> None:
+        """Validate input data for relation creation"""
+        if not lead_id:
+            raise RelationError("Lead ID is required")
+            
+        if not external_degree_id:
+            raise RelationError("External degree ID is required")
+            
+        if not payload.get('programDomainObj', {}).get('id'):
+            raise RelationError("Program domain ID is required")
+            
+        if not payload.get('selectedSchoolYear3', {}).get('name'):
+            raise RelationError("School year is required")
 
-        # Create a new relation with the incremented ID
-        relation = LeadLevelValueRelation(
-            id=new_relation_id,
+    def get_next_relation_llvr_id() -> int:
+        """Get next available relation ID"""
+        try:
+            last_relation = LeadLevelValueRelation.query\
+                .with_entities(LeadLevelValueRelation.id)\
+                .order_by(LeadLevelValueRelation.id.desc())\
+                .first()
+            return (last_relation.id + 1) if last_relation else 1
+        except Exception as e:
+            raise RelationError(f"Failed to generate next ID: {str(e)}") 
+        
+    def get_next_relation_lsr_id() -> int:
+        """Get next available relation ID"""
+        try:
+            last_relation = LeadSubjectRelation.query\
+                .with_entities(LeadSubjectRelation.id)\
+                .order_by(LeadSubjectRelation.id.desc())\
+                .first()
+            return (last_relation.id + 1) if last_relation else 1
+        except Exception as e:
+            raise SubjectRelationError(f"Failed to generate next ID: {str(e)}")
+
+    def get_school_year_id(year_name: str) -> Optional[int]:
+        """Get school year ID from year name"""
+        try:
+            if not year_name:
+                return None
+                
+            # Your existing get_school_year_id implementation
+            # Add appropriate error handling
+            return get_school_year_id(year_name)
+            
+        except Exception as e:
+            raise RelationError(f"Failed to get school year ID: {str(e)}")
+
+    def create_relation(
+        lead_id: str,
+        payload: Dict,
+        external_degree_id: str
+    ) -> LeadLevelValueRelation:
+        """Create new lead level relation"""
+        school_year_name = payload.get('selectedSchoolYear3', {}).get('name')
+        current_year = str(datetime.now().year)
+        
+        return LeadLevelValueRelation(
+            id=get_next_relation_llvr_id(),
             lead_id=lead_id,
             level_value_id=payload.get('programDomainObj', {}).get('id'),
             external_degree_id=external_degree_id,
-            school_year_id=get_school_year_id(payload.get('selectedSchoolYear3', {}).get('name')),
-            is_current_year=(payload.get('selectedSchoolYear3', {}).get('name') == str(datetime.now().year))
+            school_year_id=get_school_year_id(school_year_name),
+            is_current_year=(school_year_name == current_year)
         )
+
+    def delete_and_create_lead_level_relation(
+        lead_id: str,
+        payload: Dict,
+        external_degree_id: str
+    ) -> LeadLevelValueRelation:
+        """
+        Delete existing lead level relations and create a new one.
         
-        db.session.add(relation)
-        db.session.commit()
-        return relation
-
-    def delete_and_create_lead_subject_relations(lead_id, payload):
-        # Delete existing relations for the given lead
-        LeadSubjectRelation.query.filter_by(lead_id=lead_id).delete()
-
-        # Retrieve the highest existing ID for LeadSubjectRelation and start incrementing from there
-        last_relation = LeadSubjectRelation.query.order_by(LeadSubjectRelation.id.desc()).first()
-        new_relation_id = (last_relation.id + 1) if last_relation else 1
-
-        # Insert new relations from the payload
-        inserted_relations = []
-        for subject in payload.get('mainSubjects', []):
-            lead_subject_relation = LeadSubjectRelation(
-                id=new_relation_id,
-                lead_id=lead_id,
-                subject_id=subject.get('id'),
-                priority=subject.get('priority')
-            )
-            db.session.add(lead_subject_relation)
-            inserted_relations.append(lead_subject_relation)
-            new_relation_id += 1  # Increment the ID for the next insertion
-
-        db.session.commit()
-
-
-    def create_report_card(payload, lead_id, level):  
-        if payload.get(f'isResult{level}Available') and payload.get(f'academicYearHeadDetails{level}'):
-            school_name = payload[f'academicYearHeadDetails{level}']['schoolName']
-
-            # Get the highest existing ID for ExternalSchool and increment from there
-            last_external_school = ExternalSchool.query.order_by(ExternalSchool.id.desc()).first()
-            new_external_school_id = (last_external_school.id + 1) if last_external_school else 1
-
-            # Check if the external school already exists
-            external_school = ExternalSchool.query.filter_by(name=school_name).first()
-            if not external_school:
-                external_school = ExternalSchool(
-                    id=new_external_school_id,
-                    name=school_name,
-                    city_id=payload[f'academicYearHeadDetails{level}']['city']['id'],
-                    educational_language_id=payload[f'academicYearHeadDetails{level}']['spokenLanguage']['id']
-                )
-                db.session.add(external_school)
-                db.session.commit()
-                new_external_school_id += 1  # Increment for the next possible use
-
-            # Determine the BAC ID based on the level
-            most_recent_bac_id = get_most_recent_bac_id(payload)
-            bac_id = None
-            if level == 3:
-                bac_id = most_recent_bac_id
-            else:
-                bac_id = f'bac0000{int(most_recent_bac_id[-1]) - (3 - level)}'
+        Args:
+            lead_id: Lead ID
+            payload: Data payload
+            external_degree_id: External degree ID
             
-            # Get the highest existing ID for ReportCard and increment from there
-            last_report_card = ReportCard.query.order_by(ReportCard.id.desc()).first()
-            new_report_card_id = (last_report_card.id + 1) if last_report_card else 1
+        Returns:
+            LeadLevelValueRelation: Newly created relation
+            
+        Raises:
+            RelationError: If operation fails
+        """
+        try:
+            # Validate input data
+            validate_relation_data(lead_id, payload, external_degree_id)
+            
+            with db_transaction():
+                # Delete existing relations
+                LeadLevelValueRelation.query.filter_by(lead_id=lead_id).delete()
+                #print('deleted payload 😘 ', str(payload))
+                # Create and add new relation
+                new_relation = create_relation(
+                    lead_id=lead_id,
+                    payload=payload,
+                    external_degree_id=external_degree_id
+                )
+                
+                db.session.add(new_relation)
+                return new_relation
+                
+        except RelationError:
+            raise
+        except Exception as e:
+            raise RelationError(f"Unexpected error: line - {str(e.__traceback__.tb_lineno)}: {str(e)}")
 
-            # Create the ReportCard
-            report_card = ReportCard(
-                id=new_report_card_id,
-                lead_id=lead_id,
-                bac_id=bac_id,
-                country_id=payload[f'academicYearHeadDetails{level}']['country']['id'],
-                school_year_id=get_school_year_id(payload[f'selectedSchoolYear{level}']['name']),
-                city_id=payload[f'academicYearHeadDetails{level}']['city']['id'],
-                external_school_id=external_school.id,
-                spoken_language_id=payload[f'academicYearHeadDetails{level}']['spokenLanguage']['id'],
-                academic_year_organization_id=payload[f'academicYearHeadDetails{level}']['academicYearOrganization']['id'],
-                mark_system_id=payload[f'academicYearHeadDetails{level}']['markSystem']['id'],
-                subject_weight_system_id=payload[f'academicYearHeadDetails{level}']['subjectWeightSystem']['id']
+
+    class SubjectRelationError(Exception):
+        """Custom exception for lead-subject relation errors"""
+        pass 
+
+    def validate_subject_data(subject: Dict) -> None:
+        """
+        Validate individual subject data
+        
+        Args:
+            subject: Subject data dictionary
+            
+        Raises:
+            SubjectRelationError: If validation fails
+        """
+        if not subject.get('id'):
+            raise SubjectRelationError("Subject ID is required")
+            
+        if not isinstance(subject.get('priority'), (int, float)):
+            raise SubjectRelationError("Valid priority value is required")
+
+    def validate_payload(lead_id: str, payload: Dict) -> None:
+        """
+        Validate input payload
+        
+        Args:
+            lead_id: Lead ID
+            payload: Input payload
+            
+        Raises:
+            SubjectRelationError: If validation fails
+        """
+        if not lead_id:
+            raise SubjectRelationError("Lead ID is required")
+            
+        subjects = payload.get('mainSubjects', [])
+        if not isinstance(subjects, list):
+            raise SubjectRelationError("Main subjects must be a list")
+            
+        for subject in subjects:
+            validate_subject_data(subject)
+
+    def create_subject_relation(
+        relation_id: int,
+        lead_id: str,
+        subject: Dict
+    ) -> LeadSubjectRelation:
+        """Create a single subject relation"""
+        return LeadSubjectRelation(
+            id=relation_id,
+            lead_id=lead_id,
+            subject_id=subject.get('id'),
+            priority=subject.get('priority')
+        )
+
+    def delete_and_create_lead_subject_relations(
+        lead_id: str,
+        payload: Dict
+    ) -> List[LeadSubjectRelation]:
+        """
+        Delete existing subject relations and create new ones.
+        
+        Args:
+            lead_id: Lead ID
+            payload: Data payload containing subject relations
+            
+        Returns:
+            List[LeadSubjectRelation]: List of newly created relations
+            
+        Raises:
+            SubjectRelationError: If operation fails
+        """
+        try:
+            # Validate input data
+            validate_payload(lead_id, payload)
+            
+            subjects = payload.get('mainSubjects', [])
+            if not subjects:
+                # If no subjects provided, just delete existing relations
+                with db_transaction():
+                    LeadSubjectRelation.query.filter_by(lead_id=lead_id).delete()
+                return []
+
+            with db_transaction():
+                # Delete existing relations
+                LeadSubjectRelation.query.filter_by(lead_id=lead_id).delete()
+                
+                # Create new relations
+                next_id = get_next_relation_lsr_id()
+                new_relations = []
+                
+                for subject in subjects:
+                    relation = create_subject_relation(
+                        relation_id=next_id,
+                        lead_id=lead_id,
+                        subject=subject
+                    )
+                    db.session.add(relation)
+                    new_relations.append(relation)
+                    next_id += 1
+                    
+                return new_relations
+                
+        except SubjectRelationError:
+            raise
+        except Exception as e:
+            raise SubjectRelationError(f"Unexpected error: line - {str(e.__traceback__.tb_lineno)}: {str(e)}")
+
+    class ReportCardError(Exception):
+        """Custom exception for report card operations"""
+        pass
+
+    @dataclass
+    class SchoolData:
+        name: str
+        city_id: int
+        educational_language_id: int
+
+    @dataclass
+    class ReportCardData:
+        lead_id: str
+        bac_id: str
+        country_id: int
+        school_year_id: int
+        city_id: int
+        external_school_id: int
+        spoken_language_id: int
+        academic_year_organization_id: int
+        mark_system_id: int
+        subject_weight_system_id: int
+
+    class ReportCardCreator:
+        def __init__(self, payload: Dict, lead_id: str, level: int):
+            self.payload = payload
+            self.lead_id = lead_id
+            self.level = level
+            self.validate_input()
+
+        def validate_input(self) -> None:
+            """Validate input data"""
+            if not self.lead_id:
+                raise ReportCardError("Lead ID is required")
+                
+            if not self.payload.get(f'isResult{self.level}Available'):
+                raise ReportCardError(f"Results for level {self.level} are not available")
+                
+            head_details = self.payload.get(f'academicYearHeadDetails{self.level}')
+            if not head_details:
+                raise ReportCardError(f"Academic year head details for level {self.level} are missing")
+
+        def get_next_id(self, model_class) -> int:
+            """Get next available ID for a model"""
+            last_record = model_class.query\
+                .with_entities(model_class.id)\
+                .order_by(model_class.id.desc())\
+                .first()
+            return (last_record.id + 1) if last_record else 1
+
+        def handle_external_school(self) -> ExternalSchool:
+            """Create or get existing external school"""
+            head_details = self.payload[f'academicYearHeadDetails{self.level}']
+            school_name = head_details['schoolName']
+
+            # Check existing school
+            external_school = ExternalSchool.query.filter_by(name=school_name).first()
+            if external_school:
+                return external_school
+
+            # Create new school
+            school_data = SchoolData(
+                name=school_name,
+                city_id=head_details['city']['id'],
+                educational_language_id=head_details['spokenLanguage']['id']
             )
 
-            db.session.add(report_card)
-            db.session.commit()
+            with db_transaction():
+                new_school = ExternalSchool(
+                    id=self.get_next_id(ExternalSchool),
+                    name=school_data.name,
+                    city_id=school_data.city_id,
+                    educational_language_id=school_data.educational_language_id
+                )
+                db.session.add(new_school)
+                return new_school
 
-            # Call the function to create subject relations
-            create_report_card_subject_relations(report_card.id, payload, level)
+        def determine_bac_id(self) -> str:
+            """Determine BAC ID based on level"""
+            most_recent_bac_id = get_most_recent_bac_id(self.payload)
+            if self.level == 3:
+                return most_recent_bac_id
+                
+            bac_number = int(most_recent_bac_id[-1]) - (3 - self.level)
+            return f'bac0000{bac_number}'
+
+        def create_report_card_data(self, external_school: ExternalSchool) -> ReportCardData:
+            """Prepare report card data"""
+            head_details = self.payload[f'academicYearHeadDetails{self.level}']
+            
+            return ReportCardData(
+                lead_id=self.lead_id,
+                bac_id=self.determine_bac_id(),
+                country_id=head_details['country']['id'],
+                school_year_id=get_school_year_id(
+                    self.payload[f'selectedSchoolYear{self.level}']['name']
+                ),
+                city_id=head_details['city']['id'],
+                external_school_id=external_school.id,
+                spoken_language_id=head_details['spokenLanguage']['id'],
+                academic_year_organization_id=head_details['academicYearOrganization']['id'],
+                mark_system_id=head_details['markSystem']['id'],
+                subject_weight_system_id=head_details['subjectWeightSystem']['id']
+            )
+
+        def create(self) -> ReportCard:
+            """Create report card and related records"""
+            try:
+                # Handle external school
+                external_school = self.handle_external_school()
+                
+                # Prepare report card data
+                report_card_data = self.create_report_card_data(external_school)
+                
+                # Create report card
+                with db_transaction():
+                    report_card = ReportCard(
+                        id=self.get_next_id(ReportCard),
+                        **report_card_data.__dict__
+                    )
+                    db.session.add(report_card)
+                
+                # Create subject relations
+                create_report_card_subject_relations(
+                    report_card.id,
+                    self.payload,
+                    self.level
+                )
+                
+                return report_card
+                
+            except ReportCardError:
+                raise
+            except Exception as e:
+                raise ReportCardError(f"Failed to create report card: line - {str(e.__traceback__.tb_lineno)}: {str(e)}")
+
+    def create_report_card(payload: Dict, lead_id: str, level: int) -> Optional[ReportCard]:
+        """
+        Create a new report card with associated records.
+        
+        Args:
+            payload: Input data dictionary
+            lead_id: Lead ID
+            level: Academic level
+            
+        Returns:
+            ReportCard: Created report card or None if not applicable
+            
+        Raises:
+            ReportCardError: If creation fails
+        """
+        try:
+            if not payload.get(f'isResult{level}Available') or \
+            not payload.get(f'academicYearHeadDetails{level}'):
+                return None
+                
+            creator = ReportCardCreator(payload, lead_id, level)
+            return creator.create()
+            
+        except ReportCardError as e:
+            raise
+        except Exception as e:
+            raise ReportCardError(f"Unexpected error: line - {str(e.__traceback__.tb_lineno)}: {str(e)}")
 
     def get_most_recent_bac_id(payload):
         hs_level_selected = payload.get('hsLevelSelected')
@@ -549,7 +1036,7 @@ def init_routes(app):
                 school_term = payload[f'reportCard{level}'].index(subjects) + 1
                 is_baccalaureat = subject['isBaccalaureat']
                 weight = int(subject['weight']['value'])
-                mark_in_20 = float(subject['mark']['valueIn20'])
+                mark_in_20 = float(subject['mark']['valueIn20']) if subject['mark']['valueIn20'] is not None else float(subject['mark']['value'])
                 
                 total_weighted_marks += weight * mark_in_20
                 total_weights += weight
@@ -826,6 +1313,7 @@ def init_routes(app):
     
     def get_candidate_profile_conditions(lead, report_cards, report_card_subject_relation):
 
+        """Todo : Changements de filière"""
         candidate_profile_conditions = []
          # I-Moyenne générale récente
         most_recent_report_card = get_most_recent_report_card(get_bac_year(lead.bac_id), report_cards)
@@ -1553,16 +2041,17 @@ def init_routes(app):
 
         for course_level_value in course_level_value_relation:
             if course_level_value.minimum_score:
-                level_value_similarity = Helper.cosine_sim(course_level_value.level_value.name, lead_level_relation.level_value.name)
-                if course_level_value.level_value_id == lead_level_relation.level_value_id or level_value_similarity >= 0.25:
-                    if recent_mark < course_level_value.minimum_score:
-                        if (
-                            (course_level_value.is_L1 and get_average_mark('bac00004') < course_level_value.minimum_score) or
-                            (course_level_value.is_L2 and get_average_mark('bac00005') < course_level_value.minimum_score) or
-                            (course_level_value.is_L3 and get_average_mark('bac00006') < course_level_value.minimum_score)
-                        ):
-                            valid_courses = [course for course in valid_courses if course.id != course_level_value.course_id]
-                            invalid_courses_by_reason['courses'].append(course_level_value.course)
+                if lead_level_relation is not None:
+                    level_value_similarity = Helper.cosine_sim(course_level_value.level_value.name, lead_level_relation.level_value.name)
+                    if course_level_value.level_value_id == lead_level_relation.level_value_id or level_value_similarity >= 0.25:
+                        if recent_mark < course_level_value.minimum_score:
+                            if (
+                                (course_level_value.is_L1 and get_average_mark('bac00004') < course_level_value.minimum_score) or
+                                (course_level_value.is_L2 and get_average_mark('bac00005') < course_level_value.minimum_score) or
+                                (course_level_value.is_L3 and get_average_mark('bac00006') < course_level_value.minimum_score)
+                            ):
+                                valid_courses = [course for course in valid_courses if course.id != course_level_value.course_id]
+                                invalid_courses_by_reason['courses'].append(course_level_value.course)
 
         return valid_courses, invalid_courses
 
@@ -1657,9 +2146,9 @@ def init_routes(app):
             for course in list(valid_courses)[:]:
                 if course.check_practical_work_experience:
                     valid_courses.remove(course)
-                    invalid_courses_by_reason['courses'].append(course)
                     reason = "Ces formations nécessitent de faire des travaux pratiques."
                     invalid_courses_by_reason = add_invalid_course_reason(reason, invalid_courses)
+                    invalid_courses_by_reason['courses'].append(course)
 
         return valid_courses, invalid_courses
     
@@ -1668,8 +2157,8 @@ def init_routes(app):
     def reorder_valid_courses_by_priority(valid_courses, lead_level_value_relation, lead_subject_relation_all, 
                                         course_level_value_relation_all, course_subject_relation_all, report_card_subjects):
         # Precompute values for efficient access
-        lead_level_value_name = lead_level_value_relation.level_value.name
-        lead_external_degree_name = lead_level_value_relation.external_degree.name
+        lead_level_value_name = None if lead_level_value_relation is None else lead_level_value_relation.level_value.name
+        lead_external_degree_name = None if lead_level_value_relation is None else lead_level_value_relation.external_degree.name
         lead_subject_names = {lsr.subject.name for lsr in lead_subject_relation_all if lsr.subject_id}
         report_card_subject_names = {rcs.subject.name for rcs in report_card_subjects if rcs.subject_id}
         report_card_external_subject_names = {rcs.external_subject.name for rcs in report_card_subjects if rcs.external_subject_id}
@@ -1761,8 +2250,8 @@ def init_routes(app):
             key=lambda course: course_priority_cache[course.id],
             reverse=True
         )
-
-        return valid_courses_list[:20]
+        random.shuffle(valid_courses_list)
+        return valid_courses_list[:20] 
 
     def parse_date(date_str):
         if date_str:
@@ -1782,8 +2271,44 @@ def init_routes(app):
         return level_map.get(value, None)
         
 
-    
         
+    @app.route('/user/update/create', methods=['PUT'])
+    def update_or_create_user():
+        _json = request.json
+        phone = _json.get('phone')
+        
+        # Attempt to find user by phone or user ID
+        user = User.query.filter_by(phone=phone).first() or User.query.filter_by(id=_json.get('userId')).first()
+        print('🎀 user 🎀 '+str(phone))
+        # If user doesn't exist, create a new instance
+        if user is None:
+            user = User(phone=phone)
+
+        # Update common fields
+        user.firstname = _json.get('firstname')
+        user.lastname = _json.get('lastname')
+        user.country = _json.get('countryIso2')
+        user.phone = phone
+
+        # Map the type to the appropriate description field
+        description_field_mapping = {
+            'FLIGHT': 'description',
+            'VISA_CANDA': 'work_description',
+            'TOURISM': 'tourism_description',
+            'FAMILY': 'family_description'
+        }
+        # Set the description field based on the type
+        description_field = description_field_mapping.get(_json.get('typeRequest'))
+        if description_field:
+            setattr(user, description_field, _json.get('situationDescription'))
+
+        # Add or update the user in the session and commit changes
+        db.session.add(user)
+        db.session.commit()
+
+        return jsonify(user.as_dict())
+
+    
     
         
 
