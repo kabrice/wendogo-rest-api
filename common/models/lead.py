@@ -1,6 +1,8 @@
 
 from dataclasses import dataclass
 from . import db
+from sqlalchemy import event
+from sqlalchemy.sql import func
 
 @dataclass
 class Lead(db.Model):
@@ -26,11 +28,18 @@ class Lead(db.Model):
     french_travel_start_date = db.Column(db.Date, nullable=True)
     french_travel_end_date = db.Column(db.Date, nullable=True)
     evaluation_score = db.Column(db.Float, nullable=True)
+    contacted_clicks = db.Column(db.Integer, default=0)
+    project_message = db.Column(db.String(36000), nullable=True)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime)
-    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1) 
 
     def as_dict(self):
         excluded_fields = ['created_at', 'updated_at', 'created_by', 'updated_by']
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name not in excluded_fields}    
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name not in excluded_fields}   
+     
+# Add an event listener for updates
+@event.listens_for(Lead, 'before_update')
+def receive_before_update(mapper, connection, target):
+    target.updated_at = func.current_timestamp()

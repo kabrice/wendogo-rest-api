@@ -14,9 +14,9 @@ class LeadSubjectRelation(db.Model):
     #is_pratical_subject = db.Column(db.Boolean, nullable=False)
     priority = db.Column(db.Integer, nullable=False) # 1, 2, 3
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime)
-    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1) 
 
     subject = db.relationship('Subject', backref='lead_subject_relation')
 

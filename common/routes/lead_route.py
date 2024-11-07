@@ -18,6 +18,15 @@ def init_routes(app):
         db.session.commit()
         return jsonify({"status": True, "message": "lead has been added"})
     
+    @app.route('/lead/update/clicks', methods=['PUT'])
+    def update_clicks_and_project_message_by_user_id():
+        _json = request.json 
+        user_id = int(_json['userId'])
+        lead = lead_dao.get_by_user_id(user_id)
+        lead.contacted_clicks += 1
+        lead.project_message = _json['projectMessage']
+        db.session.commit()
+        return jsonify({"status": True, "message": "lead has been updated"})
 
 
 

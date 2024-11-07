@@ -23,8 +23,8 @@ class ReportCardSubjectRelation(db.Model):
     is_pratical_subject = db.Column(db.Boolean, nullable=False, default=False) # TP: Travaux Pratiques
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1) 
 
     external_subject = db.relationship('ExternalSubject', backref='report_card_subject_relation', lazy=True)
     subject = db.relationship('Subject', backref='report_card_subject_relation', lazy=True)

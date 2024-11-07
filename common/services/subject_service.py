@@ -39,6 +39,26 @@ class SubjectService:
         ][:30]
 
         return matches
+    
+    def get_search_subject_matches_from_user_input1(self, external_subject_input: str) -> List[Dict]:
+        subjects = self.subject_dao.get_all_subjects()
+        normalized_input = self.normalize_text(external_subject_input)
+        
+        # Create dictionary using normalized names as keys
+        unique_subjects = {}
+        for subject in subjects:
+            normalized_name = self.normalize_text(subject['name'].strip())  # Add strip() to remove whitespace
+            # Keep the first occurrence of each normalized name
+            if normalized_name not in unique_subjects:
+                unique_subjects[normalized_name] = subject
+        
+        # Find matches and limit results to 30
+        matches = [
+            subject for subject in unique_subjects.values()
+            if normalized_input in self.normalize_text(subject['name'])
+        ][:30]
+        
+        return matches
 
 # Initialize the subject service with the subject DAO
 subject_service = SubjectService(subject_dao)

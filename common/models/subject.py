@@ -15,9 +15,9 @@ class Subject(db.Model):
     level_id = db.Column(db.String(8), db.ForeignKey('level.id'), nullable=True) # Level related to the subject
     is_tech = db.Column(db.Boolean, default=False) # Technical subject used in the process and not shown to the user
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime)
-    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1) 
 
     def as_dict(self):
         excluded_fields = ['code', 'created_at', 'parent_id', 'level_id', 'updated_at','created_by', 'updated_by']

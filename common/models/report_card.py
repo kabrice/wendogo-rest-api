@@ -29,10 +29,10 @@ class ReportCard(db.Model):
     school_term2_overall_rank = db.Column(db.Integer, nullable=False) # lead overall rank for the school_term 2 (semestre 2 ou trimestre 2)
     school_term3_overall_rank = db.Column(db.Integer, nullable=False) # lead overall rank for the school_term 3 (trimestre 3)
     overall_rank = db.Column(db.Integer, nullable=False) # lead overall rank in the class based on then rank of the student in each subject
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp()) 
-    updated_at = db.Column(db.DateTime)
-    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1) 
 
     school_year = db.relationship('SchoolYear', backref='report_card')
     bac = db.relationship('Bac', backref='report_card')
