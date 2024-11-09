@@ -73,7 +73,10 @@ def init_routes(app):
         phone = _json.get('phone')
         user = User.query.filter_by(phone = phone).first()
         if user is not None:
-            _json['phone'] = phone+1
+            if _json.get('firstname') and _json.get('lastname'):
+                _json['phone'] = _json.get('phone')
+            else:
+                _json['phone'] = _json.get('phone') + 1
         new_user = User()
         for key in _json:
             setattr(new_user, key, _json[key] if (key in _json) else '')
