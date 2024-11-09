@@ -97,29 +97,33 @@ def init_routes(app):
         db.session.delete(user)
         db.session.commit()
         return jsonify({"message": "user has been deleted"})
-
+    
     @app.route('/user/edit', methods=['PATCH'])
     def edit_user():
         _json = request.json
+        user_id = _json.get('userId')
         phone = _json.get('phone')
-        user = User.query.filter_by(id=_json.get('userId')).first() 
+
+        # Find user by ID or phone
+        user = User.query.filter_by(id=user_id).first()
         if not user:
-            user = User.query.filter_by(phone = phone).first()
+            user = User.query.filter_by(phone=phone).first()
         if user is None:
-            return jsonify ({"error": "the user doesn't exist", "status": False})
-        for key in _json:
-            setattr(user, key, _json[key])
-        # user.name = _json['name']
-        # user.firstname = _json['firstname']
-        # user.lastname = _json['lastname']
-        # user.salutation = _json['salutation']
-        # user.city = _json['city']
-        # user.email = _json['email']
-        # user.phone = _json['phone']
-        # user.occupation = _json['occupation']
-        # user.description = _json['description']
+            return jsonify({"error": "The user doesn't exist", "status": False})
+
+        # Update fields, handling nested structures as needed
+        for key, value in _json.items():
+            # Handle nested structures specifically
+            if key == 'address' and isinstance(value, dict):
+                user.address = value.get('name', '')  # Extract 'name' from nested address
+            elif key == 'phoneNumberFormatted' and isinstance(value, dict):
+                user.phone = value.get('name', '')  # Extract 'name' for phone
+            else:
+                setattr(user, key, value)
+
         db.session.commit()
-        return jsonify({"status": True, "message": "user has been edited"})
+        return jsonify({"status": True, "message": "User has been edited"})
+
 
     @app.route('/user/add/verification', methods=['POST'])
     def verify_whatsapp_and_add_user():
