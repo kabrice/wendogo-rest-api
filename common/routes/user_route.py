@@ -2300,7 +2300,7 @@ def init_routes(app):
         # Map the type to the appropriate description field
         description_field_mapping = {
             'FLIGHT': 'description',
-            'VISA_CANDA': 'work_description',
+            'VISA_CANADA': 'work_description',
             'TOURISM': 'tourism_description',
             'FAMILY': 'family_description'
         }
