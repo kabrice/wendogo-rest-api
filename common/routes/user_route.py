@@ -1118,8 +1118,8 @@ def init_routes(app):
 
             # Create the new award
             award = Award(id=new_id, lead_id=lead_id)
-            award.name = award_data.get('awardName')
-            award.school_year_id = award_data.get('year', {}).get('id')
+            award.name = award_data.get('awardName') 
+            award.school_year_id = get_school_year_id(award_data.get('year', {}).get('name'))
             award.country_id = award_data.get('country', {}).get('id')
             award.city_id = award_data.get('city', {}).get('id')
             award.spoken_language_id = award_data.get('spokenLanguage', {}).get('id')
@@ -1129,7 +1129,6 @@ def init_routes(app):
             # Add and commit the new award to the database
             db.session.add(award)
             db.session.commit()
-
 
     def delete_and_create_work_experience(payload, lead_id):
         WorkExperience.query.filter_by(lead_id=lead_id).delete()
