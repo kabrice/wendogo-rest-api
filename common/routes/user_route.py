@@ -76,13 +76,13 @@ def init_routes(app):
             if _json.get('firstname') and _json.get('lastname'):
                 _json['phone'] = _json.get('phone')
             else:
-                _json['phone'] = _json.get('phone') + 1
+                _json['phone'] = _json.get('phone') + "1"
         new_user = User()
         for key in _json:
             setattr(new_user, key, _json[key] if (key in _json) else '')
         db.session.add(new_user)
         db.session.commit()
-        return jsonify({"status": True, "message": "user has been added"})
+        return jsonify({"status": True, "message": "user has been added", "user_id": new_user.id})
 
 
 
@@ -125,7 +125,7 @@ def init_routes(app):
                 setattr(user, key, value)
 
         db.session.commit()
-        return jsonify({"status": True, "message": "User has been edited"})
+        return jsonify({"status": True, "message": "User has been edited", "user_id": user.id})
 
 
     @app.route('/user/add/verification', methods=['POST'])
