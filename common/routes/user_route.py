@@ -1530,7 +1530,7 @@ def init_routes(app):
     def check_if_lead_has_validated_all_credits_on_complete_term(report_cards, report_card_subject_relation, bac_id):     
         if university_term_is_complete(report_cards, bac_id) and hasnt_validated_all_credits(report_cards, report_card_subject_relation, bac_id):
                 bac_year = get_bac_year(bac_id)
-                return {'id': f'reas000{bac_year-3}', 'reason': f'Vous avez une ou plusieurs dettes de crédit en bac+{bac_year-3}'}
+                return {'id': f'reas000{bac_year-3}', 'reason': f'Crédits insuffisants ou présence d\'une ou plusieurs dettes de crédits en bac+{bac_year-3}'}
         return None
       
     def hasnt_validated_all_credits(report_cards, report_card_subject_relation, bac_id):
