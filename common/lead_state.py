@@ -30,6 +30,7 @@ class LeadState:
     def update_progression_state(self, mark_has_progressed_2_years: bool, mark_has_progressed_3_years: bool, 
                                repeats_n3: int) -> None:
         """Update progression state based on marks and repeats"""
+        repeats_n3 = int(repeats_n3) if repeats_n3 is not None else 0
         if mark_has_progressed_2_years:
             if repeats_n3 > 1:
                 self.repeat_2_times = True
@@ -51,6 +52,9 @@ class LeadState:
 
     def update_work_experience(self, work_experience) -> None:
         """Update work experience state based on WorkExperience object"""
+        if not work_experience or not hasattr(work_experience, 'start_date'):
+            self.no_working_experience = True
+            return
         if not work_experience:
             self.no_working_experience = True
             return
