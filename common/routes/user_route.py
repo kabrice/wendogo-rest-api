@@ -408,20 +408,44 @@ def init_routes(app):
         except Exception as e:
             raise DatabaseError(f"Failed to generate next ID: {str(e)}")
 
+    # def delete_all_report_cards_and_report_card_subject_relations(lead_id):
+    #     # Delete all report card subject relations in one go
+    #     report_card_ids = [rc.id for rc in ReportCard.query.filter_by(lead_id=lead_id).all()]
+    #     if report_card_ids:
+    #         ReportCardSubjectRelation.query.filter(ReportCardSubjectRelation.report_card_id.in_(report_card_ids)).delete(synchronize_session=False)
+        
+    #     # Delete all report cards in one go
+    #     ReportCard.query.filter_by(lead_id=lead_id).delete(synchronize_session=False)
+        
+    #     # Commit the changes
+    #     db.session.commit()
+
+
     def delete_all_report_cards_and_report_card_subject_relations(lead_id):
-        # Delete all report card subject relations in one go
-        report_card_ids = [rc.id for rc in ReportCard.query.filter_by(lead_id=lead_id).all()]
-        if report_card_ids:
-            ReportCardSubjectRelation.query.filter(ReportCardSubjectRelation.report_card_id.in_(report_card_ids)).delete(synchronize_session=False)
-        
-        # Delete all report cards in one go
-        ReportCard.query.filter_by(lead_id=lead_id).delete(synchronize_session=False)
-        
-        # Commit the changes
-        db.session.commit()
+        try:
+            with db_transaction():
+                # Get all report card IDs for this lead
+                report_card_ids = [rc.id for rc in ReportCard.query.filter_by(lead_id=lead_id).all()]
+                
+                if report_card_ids:
+                    print(f"Deleting relations for report cards: {report_card_ids}")
+                    # Delete relations first
+                    deleted_relations = ReportCardSubjectRelation.query.filter(
+                        ReportCardSubjectRelation.report_card_id.in_(report_card_ids)
+                    ).delete(synchronize_session=False)
+                    print(f"Deleted {deleted_relations} relations")
 
+                # Delete report cards
+                deleted_cards = ReportCard.query.filter_by(lead_id=lead_id).delete(synchronize_session=False)
+                print(f"Deleted {deleted_cards} report cards")
 
-
+                # Force a flush to ensure deletions are processed
+                db.session.flush()
+                
+        except SQLAlchemyError as e:
+            print(f"Error during deletion: {str(e)}")
+            raise DatabaseError(f"Failed to delete existing records: {str(e)}")
+    
     class PassportError(Exception):
         """Custom exception for passport-related errors"""
         pass
@@ -897,8 +921,8 @@ def init_routes(app):
             # Create new school
             school_data = SchoolData(
                 name=school_name,
-                city_id=head_details['city']['id'],
-                educational_language_id=head_details['spokenLanguage']['id']
+                city_id=head_details.get('city', {}).get('id'),
+                educational_language_id=head_details.get('spokenLanguage', {}).get('id')
             )
 
             with db_transaction():
@@ -927,11 +951,11 @@ def init_routes(app):
             return ReportCardData(
                 lead_id=self.lead_id,
                 bac_id=self.determine_bac_id(),
-                country_id=head_details['country']['id'],
+                country_id=head_details.get('country', {}).get('id'),
                 school_year_id=get_school_year_id(
                     self.payload[f'selectedSchoolYear{self.level}']['name']
                 ),
-                city_id=head_details['city']['id'],
+                city_id=head_details.get('city', {}).get('id'),
                 external_school_id=external_school.id,
                 spoken_language_id=head_details['spokenLanguage']['id'],
                 academic_year_organization_id=head_details['academicYearOrganization']['id'],
@@ -941,34 +965,34 @@ def init_routes(app):
 
         def create(self) -> ReportCard:
             """Create report card and related records"""
-            try:
-                # Handle external school
-                external_school = self.handle_external_school()
-                
-                # Prepare report card data
-                report_card_data = self.create_report_card_data(external_school)
-                
-                # Create report card
-                with db_transaction():
-                    report_card = ReportCard(
-                        id=self.get_next_id(ReportCard),
-                        **report_card_data.__dict__
-                    )
-                    db.session.add(report_card)
-                
-                # Create subject relations
-                create_report_card_subject_relations(
-                    report_card.id,
-                    self.payload,
-                    self.level
+            #try:
+            # Handle external school
+            external_school = self.handle_external_school()
+            
+            # Prepare report card data
+            report_card_data = self.create_report_card_data(external_school)
+            
+            # Create report card
+            with db_transaction():
+                report_card = ReportCard(
+                    id=self.get_next_id(ReportCard),
+                    **report_card_data.__dict__
                 )
+                db.session.add(report_card)
+            
+            # Create subject relations
+            create_report_card_subject_relations(
+                report_card.id,
+                self.payload,
+                self.level
+            )
+            
+            return report_card
                 
-                return report_card
-                
-            except ReportCardError:
-                raise
-            except Exception as e:
-                raise ReportCardError(f"Failed to create report card: line - {str(e.__traceback__.tb_lineno)}: {str(e)}")
+            # except ReportCardError:
+            #     raise
+            # except Exception as e:
+            #     raise ReportCardError(f"Failed to create report card: line - {str(e.__traceback__.tb_lineno)}: {str(e)}")
 
     def create_report_card(payload: Dict, lead_id: str, level: int) -> Optional[ReportCard]:
         """
@@ -1058,7 +1082,7 @@ def init_routes(app):
                 rank = subject.get('rank', {}).get('value', None)
                 if not rank:
                     school_term_ranks[school_term] = []
-                    break
+                    rank = 0
                 rank = int(rank)
                 total_ranks += rank
                 rank_count += 1
@@ -1574,10 +1598,16 @@ def init_routes(app):
         average_mark = total_marks / len(baccalaureat_subjects)
         return average_mark < 12
 
+    # def cumulative_mark_for_the_completed_years(report_cards_all, start_bac_id, end_bac_id):
+    #     report_cards = [rc for rc in report_cards_all if start_bac_id <= rc.bac_id <= end_bac_id]
+    #     total_marks = sum(report_card.average_mark_in_20 for report_card in report_cards)
+    #     return total_marks / len(report_cards) if report_cards else 0
     def cumulative_mark_for_the_completed_years(report_cards_all, start_bac_id, end_bac_id):
-        report_cards = [rc for rc in report_cards_all if start_bac_id <= rc.bac_id <= end_bac_id]
+        report_cards = [rc for rc in report_cards_all if start_bac_id <= rc.bac_id <= end_bac_id and rc.average_mark_in_20 is not None]
+        if not report_cards:
+            return 0
         total_marks = sum(report_card.average_mark_in_20 for report_card in report_cards)
-        return total_marks / len(report_cards) if report_cards else 0
+        return total_marks / len(report_cards)    
     
     def get_most_recent_report_card( bac_year,report_cards):
         for year_offset in range(3):
