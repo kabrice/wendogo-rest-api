@@ -1757,7 +1757,7 @@ def init_routes(app):
             'conservatoire', 'arts', 'métiers', 'civile', 'techniques', 'avancées',
         ]
 
-        symbols_to_remove = ["'", '"', '$', '.', ',', '!', '?', ':', ';']
+        symbols_to_remove = ["'", '"', '$', '.', ',', '!', '?', ':', ';', '(', ')']
         single_characters_to_remove = list("abcdefghijklmnopqrstuvwxyz")
 
         def remove_keywords(text):

@@ -95,6 +95,17 @@ class Helper:
         Computes the cosine similarity between two texts using preinitialized TfidfVectorizer.
         """
         # Transform texts into TF-IDF vectors
+        # print("text1 👆", text1)
+        # print("text2 👆", text2)
+        if not text1 or not text2:
+            return 0
+        
+        tokens1 = Helper.custom_tokenizer(text1)
+        tokens2 = Helper.custom_tokenizer(text2)
+
+        if not tokens1 or not tokens2:
+            return 0
+
         tfidf_matrix = Helper.vectorizer.fit_transform([text1, text2])
         
         # Compute cosine similarity directly using sklearn's optimized function
