@@ -1,4 +1,4 @@
-from flask import request, jsonify, json
+from flask import request, jsonify, json, current_app
 from common.daos.user_dao import user_dao
 from common.models import db
 from common.models.user import User
@@ -41,8 +41,42 @@ from contextlib import contextmanager
 import json
 from dataclasses import dataclass
 import random
+from functools import wraps
+import jwt
+import traceback
+
 #from typing import Dict, List, Optional, Set, Tuple
 
+# ✅ DÉFINIR require_auth DANS CE FICHIER AUSSI
+def require_auth(f):
+    """Décorateur pour vérifier l'authentification"""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        auth_header = request.headers.get('Authorization')
+        
+        if auth_header:
+            try:
+                token = auth_header.split(' ')[1]  # Bearer TOKEN
+            except IndexError:
+                return jsonify({'error': 'Token format invalide'}), 401
+        
+        if not token:
+            return jsonify({'error': 'Token manquant'}), 401
+        
+        try:
+            data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
+            current_user = User.query.get(data['user_id'])
+            if not current_user:
+                return jsonify({'error': 'Utilisateur non trouvé'}), 401
+        except jwt.ExpiredSignatureError:
+            return jsonify({'error': 'Token expiré'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'error': 'Token invalide'}), 401
+        
+        return f(current_user, *args, **kwargs)
+    
+    return decorated
 
 @contextmanager
 def db_transaction():
@@ -2359,7 +2393,127 @@ def init_routes(app):
         return jsonify(user.as_dict())
 
     
-    
+    # Ajouter dans common/routes/user_route.py ou user_favorites_route.py
+
+
+    @app.route('/api/user/profile', methods=['PUT'])
+    @require_auth
+    def update_user_profile(current_user):
+        """Mettre à jour le profil utilisateur"""
+        try:
+            print(f"🔍 Début update_user_profile pour user {current_user.id}")
+            
+            data = request.get_json()
+            print(f"📥 Données reçues: {data}")
+            
+            # Validation des données
+            if not data:
+                print("❌ Aucune donnée fournie")
+                return jsonify({'success': False, 'message': 'Aucune donnée fournie'}), 400
+            
+            # Mise à jour des champs autorisés
+            updatable_fields = ['firstname', 'lastname', 'phone', 'birthdate', 'country']
+            updated_fields = []
+            
+            for field in updatable_fields:
+                if field in data:
+                    old_value = getattr(current_user, field, None)
+                    new_value = data[field]
+                    
+                    if field == 'birthdate' and new_value:
+                        # Validation et conversion de la date
+                        try:
+                            if isinstance(new_value, str):
+                                birthdate = datetime.strptime(new_value, '%Y-%m-%d').date()
+                                setattr(current_user, field, birthdate)
+                                updated_fields.append(f"{field}: {old_value} -> {birthdate}")
+                            else:
+                                setattr(current_user, field, new_value)
+                                updated_fields.append(f"{field}: {old_value} -> {new_value}")
+                        except ValueError as ve:
+                            print(f"❌ Erreur format date: {ve}")
+                            return jsonify({
+                                'success': False, 
+                                'message': 'Format de date invalide (YYYY-MM-DD requis)'
+                            }), 400
+                    else:
+                        # Mise à jour simple
+                        setattr(current_user, field, new_value)
+                        updated_fields.append(f"{field}: {old_value} -> {new_value}")
+                        
+                    print(f"✅ Champ mis à jour: {field}")
+            
+            print(f"📝 Champs mis à jour: {updated_fields}")
+            
+            # Mise à jour du timestamp (seulement si le champ existe)
+            if hasattr(current_user, 'updated_at'):
+                current_user.updated_at = datetime.utcnow()
+            
+            # Sauvegarde en base
+            db.session.commit()
+            print(f"💾 Profil sauvegardé pour user {current_user.id}")
+            
+            # Préparer la réponse
+            response_data = {
+                'success': True,
+                'message': 'Profil mis à jour avec succès',
+                'user': {
+                    'id': current_user.id,
+                    'email': current_user.email,
+                    'firstname': current_user.firstname,
+                    'lastname': current_user.lastname,
+                    'phone': current_user.phone,
+                    'birthdate': current_user.birthdate.isoformat() if current_user.birthdate else None,
+                    'country': current_user.country,
+                    'avatar_url': getattr(current_user, 'avatar_url', None),
+                    'provider': getattr(current_user, 'provider', None),
+                    'created_at': current_user.created_at.isoformat() if hasattr(current_user, 'created_at') and current_user.created_at else None,
+                    'updated_at': current_user.updated_at.isoformat() if hasattr(current_user, 'updated_at') and current_user.updated_at else None
+                }
+            }
+            
+            print(f"📤 Réponse envoyée: {response_data}")
+            return jsonify(response_data)
+            
+        except Exception as e:
+            print(f"❌ Erreur dans update_user_profile: {str(e)}")
+            print(f"📍 Traceback complet:")
+            traceback.print_exc()
+            
+            db.session.rollback()
+            return jsonify({
+                'success': False, 
+                'message': f'Erreur serveur: {str(e)}'
+            }), 500
+
+    # Également ajouter la route GET si elle n'existe pas
+    @app.route('/api/user/profile', methods=['GET'])
+    @require_auth
+    def get_user_profile(current_user):
+        """Récupérer le profil utilisateur"""
+        try:
+            print(f"🔍 get_user_profile pour user {current_user.id}")
+            
+            return jsonify({
+                'success': True,
+                'user': {
+                    'id': current_user.id,
+                    'email': current_user.email,
+                    'firstname': current_user.firstname,
+                    'lastname': current_user.lastname,
+                    'phone': current_user.phone,
+                    'birthdate': current_user.birthdate.isoformat() if current_user.birthdate else None,
+                    'country': current_user.country,
+                    'avatar_url': getattr(current_user, 'avatar_url', None),
+                    'provider': getattr(current_user, 'provider', None),
+                    'created_at': current_user.created_at.isoformat() if hasattr(current_user, 'created_at') and current_user.created_at else None,
+                    'last_login': current_user.last_login.isoformat() if hasattr(current_user, 'last_login') and current_user.last_login else None
+                }
+            })
+            
+        except Exception as e:
+            print(f"❌ Erreur get_user_profile: {e}")
+            return jsonify({'success': False, 'error': str(e)}), 500
         
 
     

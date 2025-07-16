@@ -24,15 +24,15 @@ class Course(db.Model):
     is_ranking_mandatory = db.Column(db.Boolean, nullable=True)
     check_class_repeat = db.Column(db.Boolean, nullable=True)
     check_iae_score = db.Column(db.Boolean, nullable=True)
-    french_level = db.Column(db.String(15), nullable=True) # C2, C1, B2, B1, A2, A1
-    english_level = db.Column(db.String(15), nullable=True)
+    french_level = db.Column(db.String(15), nullable=True) # C2, C1, B2, B1, A2, A1, niveau minimum de français exigé
+    english_level = db.Column(db.String(15), nullable=True) # C2, C1, B2, B1, A2, A1, niveau minimum d'anglais exigé
     another_language_level = db.Column(db.String(15), nullable=True)
     exoneration_id = db.Column(db.String(8), db.ForeignKey('exoneration.id'), nullable=True)
     annual_tuition = db.Column(db.Float, nullable=True)
     check_grade_since_n3 = db.Column(db.Boolean, nullable=True)
     school_id = db.Column(db.String(8), db.ForeignKey('school.id'), nullable=True)
     major_id = db.Column(db.String(8), db.ForeignKey('major.id'), nullable=True)
-    level_id = db.Column(db.String(8), db.ForeignKey('level.id'), nullable=True) # catégorie d'entrée dans le fichier Etude_France_Canada : Niveau d'entrée dans l'établissement
+    level_id = db.Column(db.String(8), db.ForeignKey('level.id'), nullable=True) # catégorie d'entrée dans le fichier Etude_France_Canada : Niveau d'entrée dans l'établissement (Grade)
     course_type_id = db.Column(db.String(8), db.ForeignKey('course_type.id'), nullable=True)
     educational_language_id = db.Column(db.String(8), db.ForeignKey('spoken_language.id'), nullable=True) 
     comments = db.Column(db.String(1024), nullable=True)
