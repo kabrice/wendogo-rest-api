@@ -173,7 +173,7 @@ def init_routes(app):
                     </div>
                     
                     <div style="text-align: center; margin-top: 20px;">
-                        <a href="http://localhost:3000/admin/accompany-requests" 
+                        <a href="https://wendogo.com/admin/accompany-requests" 
                            style="background: #667eea; color: white; padding: 12px 24px; 
                                   text-decoration: none; border-radius: 5px; font-weight: bold;">
                             Voir dans l'admin
@@ -196,7 +196,7 @@ def init_routes(app):
             
             # Envoyer SMS si urgent
             if data.get('urgency') in ['urgent', 'very_urgent']:
-                sms_message = f"🚨 WENDOGO: Nouvelle demande {data['offerName']} URGENTE de {current_user.firstname} {current_user.lastname}. Voir admin: http://localhost:3000/admin"
+                sms_message = f"🚨 WENDOGO: Nouvelle demande {data['offerName']} URGENTE de {current_user.firstname} {current_user.lastname}. Voir admin: https://wendogo.com/admin"
                 send_sms_notification(sms_message)
             
             # Mettre à jour le dashboard utilisateur
@@ -284,7 +284,7 @@ def init_routes(app):
                     </div>
                     
                     <div style="text-align: center; margin-top: 20px;">
-                        <a href="http://localhost:3000/admin/organization-contacts" 
+                        <a href="https://wendogo.com/admin/organization-contacts" 
                            style="background: #667eea; color: white; padding: 12px 24px; 
                                   text-decoration: none; border-radius: 5px; font-weight: bold;">
                             Voir dans l'admin

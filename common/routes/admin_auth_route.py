@@ -136,7 +136,7 @@ def send_security_alert(alert_type, details):
                 </div>
                 
                 <div style="text-align: center; margin-top: 20px;">
-                    <a href="http://localhost:3000/admin" 
+                    <a href="https://wendogo.com/admin" 
                        style="background: #dc2626; color: white; padding: 12px 24px; 
                               text-decoration: none; border-radius: 5px; font-weight: bold;">
                         Accéder à l'admin
@@ -368,7 +368,7 @@ def init_routes(app):
                     </div>
                     
                     <div style="text-align: center; margin-top: 20px;">
-                        <a href="http://localhost:3000/admin" 
+                        <a href="https://wendogo.com/admin" 
                            style="background: #059669; color: white; padding: 12px 24px; 
                                   text-decoration: none; border-radius: 5px; font-weight: bold;">
                             Accéder à l'administration

@@ -95,7 +95,7 @@ def send_password_email(password, action_type="generate"):
                         <table style="width: 100%; font-family: 'Courier New', monospace;">
                             <tr>
                                 <td style="padding: 8px 0; color: #475569; font-weight: bold;">URL Admin :</td>
-                                <td style="padding: 8px 0; color: #1e293b;">http://localhost:3000/admin</td>
+                                <td style="padding: 8px 0; color: #1e293b;">https://wendogo.com/admin</td>
                             </tr>
                             <tr>
                                 <td style="padding: 8px 0; color: #475569; font-weight: bold;">Email :</td>
@@ -115,7 +115,7 @@ def send_password_email(password, action_type="generate"):
                 
                 <!-- Quick Actions -->
                 <div style="text-align: center; margin: 30px 0;">
-                    <a href="http://localhost:3000/admin" 
+                    <a href="https://wendogo.com/admin" 
                        style="background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%); 
                               color: white; 
                               padding: 15px 30px; 
@@ -129,7 +129,7 @@ def send_password_email(password, action_type="generate"):
                         🚀 Accéder à l'admin
                     </a>
                     
-                    <a href="http://localhost:3000/admin/password-manager?email=briceouabo@gmail.com" 
+                    <a href="https://wendogo.com/admin/password-manager?email=briceouabo@gmail.com" 
                        style="background: #f8fafc; 
                               color: #475569; 
                               padding: 15px 30px; 
@@ -196,7 +196,7 @@ def send_access_link_email(email):
         
         # Générer le token d'accès
         access_token = generate_access_token(email)
-        access_url = f"http://localhost:3000/admin/password-manager?email={email}&token={access_token}"
+        access_url = f"https://wendogo.com/admin/password-manager?email={email}&token={access_token}"
         
         email_content = f"""
         <!DOCTYPE html>

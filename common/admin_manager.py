@@ -358,7 +358,7 @@ class AdminManager:
                     <div style="background: #f0fdf4; padding: 25px; border-radius: 10px; margin: 25px 0; border: 2px solid #10b981;">
                         <h3 style="color: #047857; margin-top: 0;">🔑 Informations de connexion</h3>
                         <div style="background: #f9fafb; padding: 20px; border-radius: 8px; font-family: 'Courier New', monospace; border: 1px solid #e5e7eb;">
-                            <p style="margin: 0 0 12px 0;"><strong>URL :</strong> http://localhost:3000/admin</p>
+                            <p style="margin: 0 0 12px 0;"><strong>URL :</strong> https://wendogo.com/admin</p>
                             <p style="margin: 0 0 12px 0;"><strong>Email :</strong> admin@wendogo.com</p>
                             <p style="margin: 0;"><strong>Mot de passe :</strong> <span style="background: #fef2f2; padding: 4px 8px; border-radius: 4px; color: #dc2626; font-weight: bold;">{password}</span></p>
                         </div>
@@ -374,7 +374,7 @@ class AdminManager:
                     </div>
                     
                     <div style="text-align: center; margin-top: 30px;">
-                        <a href="http://localhost:3000/admin" 
+                        <a href="https://wendogo.com/admin" 
                            style="background: linear-gradient(135deg, #1f2937 0%, #111827 100%); 
                                   color: white; 
                                   padding: 15px 30px; 
@@ -422,7 +422,7 @@ def init_admin_system(app, db, mail):
         print("🛡️ Initialisation du système admin...")
         
         # Créer les tables de sécurité
-        #admin_manager.create_security_tables()
+        admin_manager.create_security_tables()
         
         # Créer/vérifier l'admin
         success, password, message = admin_manager.create_admin_user()
