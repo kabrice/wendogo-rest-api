@@ -160,15 +160,35 @@ Système de notification Wendogo v2.0
             }), 500
     @app.route('/debug/env', methods=['GET'])
     def debug_env():
+        print("🔍 DEBUG ENVIRONMENT VARIABLES", flush=True)
         import os
-        print("🔍 DEBUG ENVIRONMENT VARIABLES")
+        import logging
+
+        logger = logging.getLogger(__name__)
+
+        # 🔍 Valeurs à inspecter
+        working_dir = os.getcwd()
+        env_exists = os.path.exists('.env')
+        mail_server = os.getenv('MAIL_SERVER')
+        mail_username = os.getenv('MAIL_USERNAME')
+        mail_default_sender = os.getenv('MAIL_DEFAULT_SENDER')
+        flask_config_sender = app.config.get('MAIL_DEFAULT_SENDER')
+
+        # 📦 Log dans stdout (donc visible via tail -f /var/log/wendogo-app.out.log)
+        logger.info("🔍 ENV CHECK — working_dir: %s", working_dir)
+        logger.info("🔍 ENV CHECK — .env exists: %s", env_exists)
+        logger.info("🔍 ENV CHECK — MAIL_SERVER: %s", mail_server)
+        logger.info("🔍 ENV CHECK — MAIL_USERNAME: %s", mail_username)
+        logger.info("🔍 ENV CHECK — MAIL_DEFAULT_SENDER: %s", mail_default_sender)
+        logger.info("🔍 CONFIG CHECK — app.config['MAIL_DEFAULT_SENDER']: %s", flask_config_sender)
+
         return {
-            'working_dir': os.getcwd(),
-            'env_exists': os.path.exists('.env'),
-            'mail_server': os.getenv('MAIL_SERVER'),
-            'mail_username': os.getenv('MAIL_USERNAME'),
-            'mail_default_sender': os.getenv('MAIL_DEFAULT_SENDER'),
-            'flask_config_sender': app.config.get('MAIL_DEFAULT_SENDER')
+            'working_dir': working_dir,
+            'env_exists': env_exists,
+            'mail_server': mail_server,
+            'mail_username': mail_username,
+            'mail_default_sender': mail_default_sender,
+            'flask_config_sender': flask_config_sender
         }
     @app.route('/api/contact/test-email', methods=['POST'])
     def test_email_config():
