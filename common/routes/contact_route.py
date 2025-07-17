@@ -238,7 +238,17 @@ Système de notification Wendogo v2.0
             'mail_default_sender': mail_default_sender,
             'flask_config_sender': flask_config_sender
         }
-
+    
+    @app.route('/api/contact/ping', methods=['POST'])
+    def ping_contact():
+        try:
+            data = request.get_json()
+            current_app.logger.info(f"✅ Ping reçu: {data}")
+            return jsonify({'success': True, 'received': data})
+        except Exception as e:
+            current_app.logger.error(f"❌ Ping error: {e}")
+            return jsonify({'success': False, 'error': str(e)})
+        
     @app.route('/api/contact/test-email', methods=['POST'])
     def test_email_config():
         """Route de test pour vérifier la configuration email"""
