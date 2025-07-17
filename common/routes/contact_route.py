@@ -158,7 +158,17 @@ Système de notification Wendogo v2.0
                 'success': False,
                 'error': 'Erreur lors de l\'envoi du message. Veuillez réessayer ou nous contacter directement.'
             }), 500
-
+    @app.route('/debug/env', methods=['GET'])
+    def debug_env():
+        import os
+        return {
+            'working_dir': os.getcwd(),
+            'env_exists': os.path.exists('.env'),
+            'mail_server': os.getenv('MAIL_SERVER'),
+            'mail_username': os.getenv('MAIL_USERNAME'),
+            'mail_default_sender': os.getenv('MAIL_DEFAULT_SENDER'),
+            'flask_config_sender': app.config.get('MAIL_DEFAULT_SENDER')
+        }
     @app.route('/api/contact/test-email', methods=['POST'])
     def test_email_config():
         """Route de test pour vérifier la configuration email"""
