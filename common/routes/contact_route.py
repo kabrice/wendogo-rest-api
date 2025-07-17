@@ -6,6 +6,7 @@ from common.models import db
 from common.models.contact_message import ContactMessage
 from datetime import datetime
 import re
+import os
 
 def init_routes(app):
     @app.route('/api/contact/send-message', methods=['POST'])
@@ -158,9 +159,9 @@ Système de notification Wendogo v2.0
                 'success': False,
                 'error': 'Erreur lors de l\'envoi du message. Veuillez réessayer ou nous contacter directement.'
             }), 500
-    @app.route('/debug/env', methods=['GET'])
+        
+    @app.route('/debugtest/env', methods=['GET'])
     def debug_env():
-        import os
         return {
             'working_dir': os.getcwd(),
             'env_exists': os.path.exists('.env'),
