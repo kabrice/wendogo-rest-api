@@ -2,6 +2,7 @@
 
 from flask import request, jsonify, current_app
 from flask_mail import Message
+from flask_mail import Mail
 from common.models import db
 from common.models.contact_message import ContactMessage
 from datetime import datetime
@@ -14,10 +15,14 @@ def init_routes(app):
     def send_contact_message():
         try:
             current_app.logger.info("[DEBUG] ✅ Route /send-message triggered")
-            current_app.logger.info(f"[DEBUG] Payload: {data}")
             # Récupérer les données du formulaire
             data = request.get_json()
-            
+            current_app.logger.info(f"[DEBUG] Payload: {data}")   
+
+            if not data:
+                current_app.logger.error("[DEBUG] ❌ No JSON data received")
+                return jsonify({'success': False, 'error': 'Aucune donnée reçue'}), 400
+                
             # Validation des données
             required_fields = ['name', 'email', 'subject', 'message', 'projectType']
             for field in required_fields:
@@ -26,7 +31,10 @@ def init_routes(app):
                         'success': False,
                         'error': f'Le champ {field} est requis'
                     }), 400
-            
+            current_app.logger.info(f"[DEBUG] MAIL_DEFAULT_SENDER: {current_app.config.get('MAIL_DEFAULT_SENDER')}")
+            current_app.logger.info(f"[DEBUG] MAIL_USERNAME: {current_app.config.get('MAIL_USERNAME')}")
+            current_app.logger.info(f"[DEBUG] MAIL_SERVER: {current_app.config.get('MAIL_SERVER')}")
+                        
             # Validation email
             email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
             if not re.match(email_regex, data['email']):
@@ -132,9 +140,10 @@ Système de notification Wendogo v2.0
                 body=email_body
             )
             
-            from app import mail
+            #from app import mail
             current_app.logger.info(f"[DEBUG] Sender: {current_app.config['MAIL_DEFAULT_SENDER']}")
 
+            mail = Mail(current_app)
             mail.send(msg)
             
             # Email de confirmation personnalisé
@@ -165,6 +174,33 @@ Système de notification Wendogo v2.0
                 'error': 'Erreur lors de l\'envoi du message. Veuillez réessayer ou nous contacter directement.'
             }), 500
 
+    @app.route('/api/contact/test', methods=['POST'])
+    def test_contact():
+        try:
+            current_app.logger.info("✅ Test route hit")
+            
+            # Test configuration mail
+            current_app.logger.info(f"MAIL config: {current_app.config.get('MAIL_DEFAULT_SENDER')}")
+            
+            # Test message simple
+            #from app import mail
+            msg = Message(
+                subject="Test Wendogo",
+                sender=current_app.config['MAIL_DEFAULT_SENDER'],
+                recipients=['hello@wendogo.com'],
+                body="Test message from production"
+            )
+            
+            mail = Mail(current_app)
+            mail.send(msg)
+            current_app.logger.info("✅ Email sent successfully")
+            
+            return jsonify({'success': True, 'message': 'Test email sent'})
+            
+        except Exception as e:
+            current_app.logger.error(f"❌ Test error: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+        
     @app.route("/debug/all-env")
     def all_env():
         import os
@@ -202,11 +238,12 @@ Système de notification Wendogo v2.0
             'mail_default_sender': mail_default_sender,
             'flask_config_sender': flask_config_sender
         }
+
     @app.route('/api/contact/test-email', methods=['POST'])
     def test_email_config():
         """Route de test pour vérifier la configuration email"""
         try:
-            from app import mail
+            #from app import mail
             
             msg = Message(
                 subject="✅ Test Configuration Email Wendogo",
@@ -230,7 +267,7 @@ Si vous recevez ce message, la configuration email fonctionne parfaitement !
 """
             )
             
-            mail.send(msg)
+            Mail.send(msg)
             
             return jsonify({
                 'success': True,
