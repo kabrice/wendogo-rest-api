@@ -6,6 +6,8 @@ from common.models import db
 from common.models.contact_message import ContactMessage
 from datetime import datetime
 import re
+import os
+import logging
 
 def init_routes(app):
     @app.route('/api/contact/send-message', methods=['POST'])
@@ -158,11 +160,17 @@ Système de notification Wendogo v2.0
                 'success': False,
                 'error': 'Erreur lors de l\'envoi du message. Veuillez réessayer ou nous contacter directement.'
             }), 500
+
+    @app.route("/debug/all-env")
+    def all_env():
+        import os
+        from flask import jsonify
+
+        return jsonify({k: v for k, v in os.environ.items() if 'MAIL' in k or 'NEXT' in k or 'FLASK' in k})
+
     @app.route('/debug/env', methods=['GET'])
     def debug_env():
         print("🔍 DEBUG ENVIRONMENT VARIABLES", flush=True)
-        import os
-        import logging
 
         logger = logging.getLogger(__name__)
 
