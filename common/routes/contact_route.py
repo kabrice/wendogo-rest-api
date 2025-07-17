@@ -13,6 +13,8 @@ def init_routes(app):
     @app.route('/api/contact/send-message', methods=['POST'])
     def send_contact_message():
         try:
+            current_app.logger.info("[DEBUG] ✅ Route /send-message triggered")
+            current_app.logger.info(f"[DEBUG] Payload: {data}")
             # Récupérer les données du formulaire
             data = request.get_json()
             
@@ -131,6 +133,8 @@ Système de notification Wendogo v2.0
             )
             
             from app import mail
+            current_app.logger.info(f"[DEBUG] Sender: {current_app.config['MAIL_DEFAULT_SENDER']}")
+
             mail.send(msg)
             
             # Email de confirmation personnalisé
