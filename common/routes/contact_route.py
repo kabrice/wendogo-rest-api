@@ -2,13 +2,173 @@
 
 from flask import request, jsonify, current_app
 from flask_mail import Message
-from flask_mail import Mail
+from app import mail
 from common.models import db
 from common.models.contact_message import ContactMessage
 from datetime import datetime
 import re
 import os
 import logging
+
+def get_response_template(project_type):
+    """Retourne un template de réponse selon le type de projet"""
+    templates = {
+        'orientation': """
+• Proposer un appel découverte gratuit (15 min)
+• Envoyer le lien vers le simulateur
+• Mentionner nos 2100+ formations référencées
+• Proposer l'accompagnement personnalisé""",
+        
+        'visa': """
+• Envoyer le guide visa étudiant complet
+• Vérifier l'éligibilité Campus France
+• Proposer l'accompagnement visa premium
+• Planifier un appel pour évaluer le dossier""",
+        
+        'campus-france': """
+• Expliquer la procédure selon le pays
+• Vérifier les documents requis
+• Proposer l'accompagnement Campus France
+• Donner les délais de traitement""",
+        
+        'parcoursup': """
+• Clarifier l'éligibilité pour étudiants étrangers
+• Expliquer les formations accessibles (BTS, CPGE, DCG)
+• Proposer l'accompagnement spécialisé""",
+        
+        'logement': """
+• Envoyer le guide logement étudiant
+• Proposer nos partenaires logement
+• Conseils pour les garanties""",
+        
+        'default': """
+• Réponse personnalisée selon la demande
+• Proposer un appel découverte
+• Rediriger vers les ressources pertinentes"""
+    }
+    return templates.get(project_type, templates['default'])
+
+def get_response_urgency(project_type):
+    """Retourne l'urgence de réponse selon le type"""
+    if project_type in ['visa', 'campus-france']:
+        return "⚡ URGENT - Répondre sous 1h (délais serrés)"
+    elif project_type in ['parcoursup']:
+        return "🔥 PRIORITAIRE - Répondre sous 2h"
+    else:
+        return "📧 STANDARD - Répondre sous 24h"
+
+def get_confirmation_email(name, subject, project_type, message_content):
+    """Génère l'email de confirmation personnalisé"""
+    
+    project_info = {
+        'orientation': {
+            'emoji': '🎓',
+            'title': 'votre recherche d\'orientation',
+            'next_steps': """
+🎯 PROCHAINES ÉTAPES POUR VOTRE ORIENTATION :
+
+1. 📊 Faites vous accomagner
+   → http://localhost:3000/?tab=accompany#accompany-section
+
+2. 📞 Réservez votre appel découverte (15 min gratuit)
+   → Un expert analyse votre profil
+
+3. 🎓 Recevez vos recommandations personnalisées
+   → Parmi nos 2100+ formations référencées
+
+💡 CONSEIL : Commencez par notre simulateur pour une première évaluation !"""
+        },
+        
+        'visa': {
+            'emoji': '📋',
+            'title': 'votre demande de visa étudiant',
+            'next_steps': """
+📋 PROCHAINES ÉTAPES POUR VOTRE VISA :
+
+1. 📖 Consultez notre guide complet
+   → http://localhost:3000/guides/etudier-en-france
+
+2. ✅ Vérifiez votre éligibilité Campus France
+   → Selon votre pays de résidence
+
+3. 🎯 Maximisez vos chances avec notre accompagnement
+   → Préparation complète du dossier
+
+⚠️ IMPORTANT : Les délais de visa peuvent être longs, commencez tôt !"""
+        },
+        
+        'campus-france': {
+            'emoji': '🏛️',
+            'title': 'la procédure Campus France',
+            'next_steps': """
+🏛️ AIDE CAMPUS FRANCE :
+
+1. 🌍 Vérifiez si votre pays est concerné
+   → Liste complète dans notre guide
+
+2. 📋 Préparez votre dossier étape par étape
+   → Documents, délais, entretien
+
+3. 🎯 Bénéficiez de notre expertise
+   → Accompagnement spécialisé Campus France
+
+📅 DÉLAIS : Commencez 6-8 mois avant votre rentrée !"""
+        },
+        
+        'default': {
+            'emoji': '💼',
+            'title': 'votre projet d\'études en France',
+            'next_steps': """
+🚀 RESSOURCES UTILES POUR VOTRE PROJET :
+
+• 📖 Guides complets : http://localhost:3000/guides/etudier-en-france
+• 🔍 Recherche formations : http://localhost:3000
+• 📊 Faites vous accompanger : http://localhost:3000/?tab=accompany#accompany-section
+• 💬 Support immédiat : WhatsApp +33 6 68 15 60 73"""
+        }
+    }
+    
+    info = project_info.get(project_type, project_info['default'])
+    
+    return f"""
+Bonjour {name} ! 👋
+
+Merci pour votre message {info['emoji']} {info['title']}.
+
+✅ CONFIRMATION DE RÉCEPTION
+Nous avons bien reçu votre demande : "{subject}"
+
+Notre équipe d'experts va analyser votre situation et vous répondre personnellement dans les plus brefs délais (généralement sous 2h en journée).
+
+{info['next_steps']}
+
+═══════════════════════════════════════════════════
+🚀 BESOIN D'UNE RÉPONSE IMMÉDIATE ?
+═══════════════════════════════════════════════════
+
+📧 Email : hello@wendogo.com
+📱 WhatsApp : +33 6 68 15 60 73 (réponse immédiate)
+💬 Messenger : https://m.me/wendogoHQ
+🌐 Site web : http://localhost:3000
+
+═══════════════════════════════════════════════════
+📋 RÉCAPITULATIF DE VOTRE DEMANDE
+═══════════════════════════════════════════════════
+Type de projet : {project_type} {info['emoji']}
+Sujet : {subject}
+Date : {datetime.now().strftime('%d/%m/%Y à %H:%M')}
+
+Votre message :
+{message_content}
+
+═══════════════════════════════════════════════════
+
+À très bientôt pour concrétiser votre projet d'études en France ! 🇫🇷
+
+L'équipe Wendogo 🎓
+
+P.S. : Ajoutez hello@wendogo.com à vos contacts pour ne manquer aucune de nos réponses !
+"""
 
 def init_routes(app):
     @app.route('/api/contact/send-message', methods=['POST'])
@@ -143,7 +303,6 @@ Système de notification Wendogo v2.0
             #from app import mail
             current_app.logger.info(f"[DEBUG] Sender: {current_app.config['MAIL_DEFAULT_SENDER']}")
 
-            mail = Mail(current_app)
             mail.send(msg)
             
             # Email de confirmation personnalisé
@@ -195,7 +354,6 @@ Système de notification Wendogo v2.0
                 body="Test message from production"
             )
             
-            mail = Mail(current_app)
             mail.send(msg)
             current_app.logger.info("✅ Email sent successfully")
             
@@ -295,163 +453,3 @@ Si vous recevez ce message, la configuration email fonctionne parfaitement !
                 'success': False,
                 'error': f'Erreur email : {str(e)}'
             }), 500
-
-def get_response_template(project_type):
-    """Retourne un template de réponse selon le type de projet"""
-    templates = {
-        'orientation': """
-• Proposer un appel découverte gratuit (15 min)
-• Envoyer le lien vers le simulateur
-• Mentionner nos 2100+ formations référencées
-• Proposer l'accompagnement personnalisé""",
-        
-        'visa': """
-• Envoyer le guide visa étudiant complet
-• Vérifier l'éligibilité Campus France
-• Proposer l'accompagnement visa premium
-• Planifier un appel pour évaluer le dossier""",
-        
-        'campus-france': """
-• Expliquer la procédure selon le pays
-• Vérifier les documents requis
-• Proposer l'accompagnement Campus France
-• Donner les délais de traitement""",
-        
-        'parcoursup': """
-• Clarifier l'éligibilité pour étudiants étrangers
-• Expliquer les formations accessibles (BTS, CPGE, DCG)
-• Proposer l'accompagnement spécialisé""",
-        
-        'logement': """
-• Envoyer le guide logement étudiant
-• Proposer nos partenaires logement
-• Conseils pour les garanties""",
-        
-        'default': """
-• Réponse personnalisée selon la demande
-• Proposer un appel découverte
-• Rediriger vers les ressources pertinentes"""
-    }
-    return templates.get(project_type, templates['default'])
-
-def get_response_urgency(project_type):
-    """Retourne l'urgence de réponse selon le type"""
-    if project_type in ['visa', 'campus-france']:
-        return "⚡ URGENT - Répondre sous 1h (délais serrés)"
-    elif project_type in ['parcoursup']:
-        return "🔥 PRIORITAIRE - Répondre sous 2h"
-    else:
-        return "📧 STANDARD - Répondre sous 24h"
-
-def get_confirmation_email(name, subject, project_type, message_content):
-    """Génère l'email de confirmation personnalisé"""
-    
-    project_info = {
-        'orientation': {
-            'emoji': '🎓',
-            'title': 'votre recherche d\'orientation',
-            'next_steps': """
-🎯 PROCHAINES ÉTAPES POUR VOTRE ORIENTATION :
-
-1. 📊 Faites vous accomagner
-   → https://wendogo.com/?tab=accompany#accompany-section
-
-2. 📞 Réservez votre appel découverte (15 min gratuit)
-   → Un expert analyse votre profil
-
-3. 🎓 Recevez vos recommandations personnalisées
-   → Parmi nos 2100+ formations référencées
-
-💡 CONSEIL : Commencez par notre simulateur pour une première évaluation !"""
-        },
-        
-        'visa': {
-            'emoji': '📋',
-            'title': 'votre demande de visa étudiant',
-            'next_steps': """
-📋 PROCHAINES ÉTAPES POUR VOTRE VISA :
-
-1. 📖 Consultez notre guide complet
-   → https://wendogo.com/guides/etudier-en-france
-
-2. ✅ Vérifiez votre éligibilité Campus France
-   → Selon votre pays de résidence
-
-3. 🎯 Maximisez vos chances avec notre accompagnement
-   → Préparation complète du dossier
-
-⚠️ IMPORTANT : Les délais de visa peuvent être longs, commencez tôt !"""
-        },
-        
-        'campus-france': {
-            'emoji': '🏛️',
-            'title': 'la procédure Campus France',
-            'next_steps': """
-🏛️ AIDE CAMPUS FRANCE :
-
-1. 🌍 Vérifiez si votre pays est concerné
-   → Liste complète dans notre guide
-
-2. 📋 Préparez votre dossier étape par étape
-   → Documents, délais, entretien
-
-3. 🎯 Bénéficiez de notre expertise
-   → Accompagnement spécialisé Campus France
-
-📅 DÉLAIS : Commencez 6-8 mois avant votre rentrée !"""
-        },
-        
-        'default': {
-            'emoji': '💼',
-            'title': 'votre projet d\'études en France',
-            'next_steps': """
-🚀 RESSOURCES UTILES POUR VOTRE PROJET :
-
-• 📖 Guides complets : wendogo.com/guides/etudier-en-france
-• 🔍 Recherche formations : wendogo.com
-• 📊 Faites vous accompanger : wendogo.com/?tab=accompany#accompany-section
-• 💬 Support immédiat : WhatsApp +33 6 68 15 60 73"""
-        }
-    }
-    
-    info = project_info.get(project_type, project_info['default'])
-    
-    return f"""
-Bonjour {name} ! 👋
-
-Merci pour votre message {info['emoji']} {info['title']}.
-
-✅ CONFIRMATION DE RÉCEPTION
-Nous avons bien reçu votre demande : "{subject}"
-
-Notre équipe d'experts va analyser votre situation et vous répondre personnellement dans les plus brefs délais (généralement sous 2h en journée).
-
-{info['next_steps']}
-
-═══════════════════════════════════════════════════
-🚀 BESOIN D'UNE RÉPONSE IMMÉDIATE ?
-═══════════════════════════════════════════════════
-
-📧 Email : hello@wendogo.com
-📱 WhatsApp : +33 6 68 15 60 73 (réponse immédiate)
-💬 Messenger : https://m.me/wendogoHQ
-🌐 Site web : https://wendogo.com
-
-═══════════════════════════════════════════════════
-📋 RÉCAPITULATIF DE VOTRE DEMANDE
-═══════════════════════════════════════════════════
-Type de projet : {project_type} {info['emoji']}
-Sujet : {subject}
-Date : {datetime.now().strftime('%d/%m/%Y à %H:%M')}
-
-Votre message :
-{message_content}
-
-═══════════════════════════════════════════════════
-
-À très bientôt pour concrétiser votre projet d'études en France ! 🇫🇷
-
-L'équipe Wendogo 🎓
-
-P.S. : Ajoutez hello@wendogo.com à vos contacts pour ne manquer aucune de nos réponses !
-"""
