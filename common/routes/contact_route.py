@@ -168,10 +168,14 @@ Système de notification Wendogo v2.0
             }), 200
             
         except Exception as e:
-            current_app.logger.error(f"Error sending contact message: {str(e)}")
+            print(f"❌ [CONTACT] Exception: {e}")
+            print(f"❌ [CONTACT] Exception type: {type(e)}")
+            import traceback
+            print(f"❌ [CONTACT] Traceback: {traceback.format_exc()}")
+            
             return jsonify({
                 'success': False,
-                'error': 'Erreur lors de l\'envoi du message. Veuillez réessayer ou nous contacter directement.'
+                'error': f'Exception: {str(e)}'
             }), 500
 
     @app.route('/api/contact/test', methods=['POST'])
