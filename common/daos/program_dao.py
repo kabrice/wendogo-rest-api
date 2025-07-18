@@ -2,11 +2,118 @@
 from common.models.program import Program
 from common.models.school import School
 from sqlalchemy import or_, and_, Integer, func, distinct
+from sqlalchemy.sql.sqltypes import Numeric
+import re
 
 class ProgramDAO:
     def __init__(self, model):
         self.model = model    
-    
+
+    def _extract_price_from_string(self, price_string):
+        """
+        Extrait le prix numérique d'une chaîne
+        Gère les formats: "1000€", "1 000€", "1000", "1 000€ à 2 000€"
+        """
+        if not price_string:
+            return None, None
+            
+        # Nettoyer la chaîne
+        clean_string = str(price_string).replace('€', '').replace(' ', '').replace(',', '')
+        
+        # Chercher les nombres
+        numbers = re.findall(r'\d+', clean_string)
+        
+        if not numbers:
+            return None, None
+            
+        if 'à' in price_string or '-' in price_string:
+            # Fourchette de prix
+            if len(numbers) >= 2:
+                return int(numbers[0]), int(numbers[1])
+            else:
+                # Si un seul nombre dans une fourchette, utiliser comme min
+                return int(numbers[0]), None
+        else:
+            # Prix unique
+            price = int(numbers[0])
+            return price, price
+
+    def _create_price_filter(self, field_name, min_val=None, max_val=None):
+        """
+        Crée un filtre SQL robuste pour les champs de prix
+        """
+        conditions = []
+        
+        if min_val is not None or max_val is not None:
+            # Exclure les valeurs NULL ou vides
+            base_condition = and_(
+                field_name.isnot(None),
+                field_name != '',
+                field_name != 'Non spécifié',
+                field_name != 'Nous consulter'
+            )
+            conditions.append(base_condition)
+        
+        if min_val is not None:
+            # Condition pour prix minimum
+            min_condition = or_(
+                # Prix unique >= min_val
+                and_(
+                    ~field_name.like('%à%'),
+                    ~field_name.like('%-%'),
+                    func.cast(
+                        func.regexp_replace(
+                            func.regexp_replace(field_name, '[^0-9]', ''),
+                            '^$', '0'
+                        ), Integer
+                    ) >= min_val
+                ),
+                # Fourchette: prix max >= min_val (chevauchement possible)
+                and_(
+                    or_(field_name.like('%à%'), field_name.like('%-%')),
+                    func.cast(
+                        func.regexp_replace(
+                            func.substring_index(
+                                func.regexp_replace(field_name, '[^0-9à-]', ''), 
+                                'à', -1
+                            ),
+                            '[^0-9]', ''
+                        ), Integer
+                    ) >= min_val
+                )
+            )
+            conditions.append(min_condition)
+        
+        if max_val is not None:
+            # Condition pour prix maximum
+            max_condition = or_(
+                # Prix unique <= max_val
+                and_(
+                    ~field_name.like('%à%'),
+                    ~field_name.like('%-%'),
+                    func.cast(
+                        func.regexp_replace(field_name, '[^0-9]', ''),
+                        Integer
+                    ) <= max_val
+                ),
+                # Fourchette: prix min <= max_val (chevauchement possible)
+                and_(
+                    or_(field_name.like('%à%'), field_name.like('%-%')),
+                    func.cast(
+                        func.regexp_replace(
+                            func.substring_index(
+                                func.regexp_replace(field_name, '[^0-9à-]', ''), 
+                                'à', 1
+                            ),
+                            '[^0-9]', ''
+                        ), Integer
+                    ) <= max_val
+                )
+            )
+            conditions.append(max_condition)
+        
+        return and_(*conditions) if conditions else None
+
     def get_all_programs(self):
         """Récupère tous les programmes actifs avec leurs écoles"""
         programs = self.model.query.filter_by(is_active=True).all()
@@ -101,66 +208,46 @@ class ProgramDAO:
 
             # ✅ FILTRES DE PRIX - FRAIS DE SCOLARITÉ - MANQUAIENT
             if filters.get('tuition_min') or filters.get('tuition_max'):
-                print(f"🔍 Applying tuition filters: min={filters.get('tuition_min')}, max={filters.get('tuition_max')}")
                 try:
-                    if filters.get('tuition_min'):
-                        min_val = int(filters['tuition_min'])
-                        # Utiliser une approche plus simple pour MySQL
-                        query = query.filter(
-                            func.cast(
-                                func.replace(
-                                    func.replace(self.model.tuition, '€', ''),
-                                    ' ', ''
-                                ).op('REGEXP')('[0-9]+'),
-                                'UNSIGNED'
-                            ) >= min_val
-                        )
+                    tuition_min = int(filters['tuition_min']) if filters.get('tuition_min') else None
+                    tuition_max = int(filters['tuition_max']) if filters.get('tuition_max') else None
                     
-                    if filters.get('tuition_max'):
-                        max_val = int(filters['tuition_max'])
-                        query = query.filter(
-                            func.cast(
-                                func.replace(
-                                    func.replace(self.model.tuition, '€', ''),
-                                    ' ', ''
-                                ).op('REGEXP')('[0-9]+'),
-                                'UNSIGNED'
-                            ) <= max_val
-                        )
+                    print(f"🔍 Applying tuition filters: min={tuition_min}, max={tuition_max}")
+                    
+                    price_filter = self._create_price_filter(
+                        self.model.tuition, 
+                        tuition_min, 
+                        tuition_max
+                    )
+                    
+                    if price_filter is not None:
+                        query = query.filter(price_filter)
+                        print(f"✅ Tuition filter applied successfully")
+                    
                 except (ValueError, TypeError) as e:
-                    print(f"Erreur dans les filtres de prix: {e}")
-                    pass
-            
-            # ✅ FILTRES D'ACOMPTE - MANQUAIENT
+                    print(f"❌ Erreur dans les filtres de scolarité: {e}")
+
+            # ✅ FILTRES D'ACOMPTE CORRIGÉS
             if filters.get('deposit_min') or filters.get('deposit_max'):
-                print(f"🔍 Applying deposit filters: min={filters.get('deposit_min')}, max={filters.get('deposit_max')}")
                 try:
-                    if filters.get('deposit_min'):
-                        min_val = int(filters['deposit_min'])
-                        query = query.filter(
-                            func.cast(
-                                func.replace(
-                                    func.replace(self.model.first_deposit, '€', ''),
-                                    ' ', ''
-                                ).op('REGEXP')('[0-9]+'),
-                                'UNSIGNED'
-                            ) >= min_val
-                        )
+                    deposit_min = int(filters['deposit_min']) if filters.get('deposit_min') else None
+                    deposit_max = int(filters['deposit_max']) if filters.get('deposit_max') else None
                     
-                    if filters.get('deposit_max'):
-                        max_val = int(filters['deposit_max'])
-                        query = query.filter(
-                            func.cast(
-                                func.replace(
-                                    func.replace(self.model.first_deposit, '€', ''),
-                                    ' ', ''
-                                ).op('REGEXP')('[0-9]+'),
-                                'UNSIGNED'
-                            ) <= max_val
-                        )
+                    print(f"🔍 Applying deposit filters: min={deposit_min}, max={deposit_max}")
+                    
+                    # Utiliser le bon nom de colonne : first_deposit
+                    deposit_filter = self._create_price_filter(
+                        self.model.first_deposit, 
+                        deposit_min, 
+                        deposit_max
+                    )
+                    
+                    if deposit_filter is not None:
+                        query = query.filter(deposit_filter)
+                        print(f"✅ Deposit filter applied successfully")
+                    
                 except (ValueError, TypeError) as e:
-                    print(f"Erreur dans les filtres d'acompte: {e}")
-                    pass
+                    print(f"❌ Erreur dans les filtres d'acompte: {e}")
 
             # Filtre par sous-domaines
             if filters.get('subdomain_ids'):
@@ -355,87 +442,39 @@ class ProgramDAO:
                     query = query.filter(or_(*language_conditions)) 
 
             if filters.get('tuition_min') or filters.get('tuition_max'):
-                print(f"🔍 Applying tuition filters: min={filters.get('tuition_min')}, max={filters.get('tuition_max')}")
-                
                 try:
-                    if filters.get('tuition_min'):
-                        min_val = int(filters['tuition_min'])
-                        print(f"🔍 Filtering tuition >= {min_val}")
-                        
-                        # ✅ Version simplifiée : chercher dans le champ directement
-                        # Pour "5 500 €" ou "5 900€ à 7 900€", on extrait le premier nombre
-                        query = query.filter(
-                            # Utiliser REGEXP pour extraire le premier nombre
-                            func.cast(
-                                func.regexp_substr(self.model.tuition, '[0-9 ]+'),  # Extrait "5 500" de "5 500 €"
-                                'UNSIGNED'
-                            ) >= min_val
-                        )
+                    tuition_min = int(filters['tuition_min']) if filters.get('tuition_min') else None
+                    tuition_max = int(filters['tuition_max']) if filters.get('tuition_max') else None
                     
-                    if filters.get('tuition_max'):
-                        max_val = int(filters['tuition_max'])
-                        print(f"🔍 Filtering tuition <= {max_val}")
-                        
-                        # Pour le max, on prend aussi le premier nombre (car "5 900€ à 7 900€" → on filtre sur 5900)
-                        query = query.filter(
-                            func.cast(
-                                func.regexp_substr(self.model.tuition, '[0-9 ]+'),
-                                'UNSIGNED'
-                            ) <= max_val
-                        )
-                        
-                except Exception as e:
-                    print(f"❌ Erreur dans les filtres de prix: {e}")
-                    # ✅ Version de fallback plus simple
-                    try:
-                        if filters.get('tuition_min'):
-                            min_val = str(filters['tuition_min'])
-                            # Recherche simple dans le texte
-                            query = query.filter(self.model.tuition.like(f'%{min_val}%'))
-                            print(f"🔍 Fallback: searching for '{min_val}' in tuition field")
-                    except:
-                        print("❌ Even fallback failed for tuition filters")
-                        pass
-            
-            # ✅ CORRECTION FILTRES ACOMPTE - Version simplifiée
+                    price_filter = self._create_price_filter(
+                        self.model.tuition, 
+                        tuition_min, 
+                        tuition_max
+                    )
+                    
+                    if price_filter is not None:
+                        query = query.filter(price_filter)
+                    
+                except (ValueError, TypeError) as e:
+                    print(f"❌ Erreur dans les filtres de scolarité (paginé): {e}")
+
+            # ✅ FILTRES D'ACOMPTE
             if filters.get('deposit_min') or filters.get('deposit_max'):
-                print(f"🔍 Applying deposit filters: min={filters.get('deposit_min')}, max={filters.get('deposit_max')}")
-                
                 try:
-                    if filters.get('deposit_min'):
-                        min_val = int(filters['deposit_min'])
-                        print(f"🔍 Filtering deposit >= {min_val}")
-                        
-                        query = query.filter(
-                            func.cast(
-                                func.regexp_substr(self.model.first_deposit, '[0-9 ]+'),
-                                'UNSIGNED'
-                            ) >= min_val
-                        )
+                    deposit_min = int(filters['deposit_min']) if filters.get('deposit_min') else None
+                    deposit_max = int(filters['deposit_max']) if filters.get('deposit_max') else None
                     
-                    if filters.get('deposit_max'):
-                        max_val = int(filters['deposit_max'])
-                        print(f"🔍 Filtering deposit <= {max_val}")
-                        
-                        query = query.filter(
-                            func.cast(
-                                func.regexp_substr(self.model.first_deposit, '[0-9 ]+'),
-                                'UNSIGNED'
-                            ) <= max_val
-                        )
-                        
-                except Exception as e:
-                    print(f"❌ Erreur dans les filtres d'acompte: {e}")
-                    # Version de fallback
-                    try:
-                        if filters.get('deposit_min'):
-                            min_val = str(filters['deposit_min'])
-                            query = query.filter(self.model.first_deposit.like(f'%{min_val}%'))
-                            print(f"🔍 Fallback: searching for '{min_val}' in deposit field")
-                    except:
-                        print("❌ Even fallback failed for deposit filters")
-                    pass
-                               
+                    deposit_filter = self._create_price_filter(
+                        self.model.first_deposit, 
+                        deposit_min, 
+                        deposit_max
+                    )
+                    
+                    if deposit_filter is not None:
+                        query = query.filter(deposit_filter)
+                    
+                except (ValueError, TypeError) as e:
+                    print(f"❌ Erreur dans les filtres d'acompte (paginé): {e}")              
 
             # Filtre par niveau RNCP
             if filters.get('rncp_level'):
