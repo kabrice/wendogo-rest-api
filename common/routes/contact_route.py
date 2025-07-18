@@ -291,6 +291,7 @@ Envoyé automatiquement depuis wendogo.com
 Système de notification Wendogo v2.0
 """
             
+            mail = current_app.extensions['mail']
             # Envoyer l'email à l'équipe
             msg = Message(
                 subject=email_subject,
@@ -344,7 +345,7 @@ Système de notification Wendogo v2.0
             
             # Test configuration mail
             current_app.logger.info(f"MAIL config: {current_app.config.get('MAIL_DEFAULT_SENDER')}")
-            
+            mail = current_app.extensions['mail']
             # Test message simple
             #from app import mail
             msg = Message(
@@ -416,7 +417,7 @@ Système de notification Wendogo v2.0
         """Route de test pour vérifier la configuration email"""
         try:
             #from app import mail
-            
+            mail = current_app.extensions['mail']
             msg = Message(
                 subject="✅ Test Configuration Email Wendogo",
                 sender=current_app.config['MAIL_DEFAULT_SENDER'],
