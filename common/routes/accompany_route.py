@@ -43,12 +43,14 @@ def require_auth(f):
 def send_notification_email(subject, content, recipient=None):
     """Envoyer un email de notification"""
     try:
-        from app import mail
+        # ✅ UTILISER current_app au lieu de l'import circulaire
+        mail = current_app.extensions['mail']
         
         msg = Message(
             subject=subject,
             recipients=[recipient or 'hello@wendogo.com'],
-            html=content
+            html=content,
+            sender=current_app.config['MAIL_DEFAULT_SENDER']  # ✅ Ajout du sender
         )
         
         mail.send(msg)
