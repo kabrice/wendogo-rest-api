@@ -2,7 +2,6 @@
 
 from flask import request, jsonify, current_app
 from flask_mail import Message
-from app import mail
 from common.models import db
 from common.models.contact_message import ContactMessage
 from datetime import datetime
