@@ -171,7 +171,7 @@ P.S. : Ajoutez hello@wendogo.com à vos contacts pour ne manquer aucune de nos r
 """
 
 def init_routes(app):
-    @app.route('/api/contact/send-message', methods=['POST'])
+    @app.route('/api/contact/send-message-NEW', methods=['POST'])
     def send_contact_message():
         try:
             current_app.logger.info("[DEBUG] ✅ Route /send-message triggered")
