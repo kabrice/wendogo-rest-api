@@ -439,7 +439,7 @@ Si vous recevez ce message, la configuration email fonctionne parfaitement !
 """
             )
             
-            Mail.send(msg)
+            mail.send(msg)
             
             return jsonify({
                 'success': True,
