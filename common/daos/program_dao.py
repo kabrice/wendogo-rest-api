@@ -294,6 +294,7 @@ class ProgramDAO:
         similar_programs = (self.model.query
                           .filter(and_(
                               self.model.id != program_id,
+                              self.model.grade == current_program.grade,
                               self.model.is_active == True,
                               or_(*similar_conditions)
                           ))
@@ -318,8 +319,8 @@ class ProgramDAO:
             if program.school_id == current_program.school_id:
                 similarity_score += 1
             
-            # Bonus si même grade
-            if program.grade == current_program.grade:
+            # Bonus si même type de certification d'état
+            if program.state_certification_type_complement == current_program.state_certification_type_complement:
                 similarity_score += 0.5
             
             program_scores.append((program, similarity_score))
