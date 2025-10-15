@@ -88,20 +88,30 @@ def init_routes(app):
     
     @app.route('/programs/search', methods=['POST'])
     def search_programs():
-        """Recherche de programmes avec pagination et debug"""
+        """Recherche de programmes avec pagination et nouveaux filtres"""
         try:
-            print("🔍 Search endpoint called")
-            print("Request headers:", dict(request.headers))
-            print("Request data:", request.get_data())
-            
             data = request.json or {}
-            print("Parsed JSON:", data)
-            
             filters = data.copy()
             
             # Extraire les paramètres de pagination
             page = filters.pop('page', 1)
             limit = filters.pop('limit', 12)
+            
+            # ✅ EXTRAIRE LES NOUVEAUX FILTRES CAMPUS FRANCE
+            campus_france_filters = filters.pop('campus_france_filters', {})
+            
+            # Ajouter aux filtres principaux
+            if campus_france_filters.get('connected'):
+                filters['campus_france_connected'] = True
+            
+            if campus_france_filters.get('parallelProcedure'):
+                filters['parallel_procedure'] = True
+            
+            if campus_france_filters.get('exoneration') is not None:
+                filters['exoneration'] = campus_france_filters['exoneration']
+            
+            if campus_france_filters.get('bienvenueFrance'):
+                filters['bienvenue_france_level'] = campus_france_filters['bienvenueFrance']
             
             # Valider les paramètres
             try:
@@ -110,21 +120,13 @@ def init_routes(app):
             except (ValueError, TypeError):
                 page, limit = 1, 12
             
-            print(f"🔍 Filters after processing: {filters}")
-            print(f"🔍 Pagination: page={page}, limit={limit}")
-            
-            # ✅ AJOUT : Si aucun filtre, retourner toutes les formations
-            if not filters or all(not v for v in filters.values()):
-                print("🔍 No filters provided, returning all programs")
-                filters = {}  # Recherche sans filtres = toutes les formations
+            print(f"🔎 Filters after processing: {filters}")
             
             # Utiliser la méthode paginée
             result = program_dao.search_programs_paginated(filters, page, limit)
             
-            print(f"🔍 DAO returned: {len(result.get('data', []))} programs, total: {result.get('total', 0)}")
-            
             return jsonify(result)
-            
+        
         except Exception as e:
             print(f"❌ Error in search_programs: {str(e)}")
             import traceback

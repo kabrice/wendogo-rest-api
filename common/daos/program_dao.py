@@ -357,6 +357,41 @@ class ProgramDAO:
         
         if filters:
             print(f"🔍 Applying filters: {list(filters.keys())}")
+
+            # ✅ NOUVEAUX FILTRES CAMPUS FRANCE
+            print(f"👺 campus_france_connected (raw): {filters.get('campus_france_connected')}")
+            # Filtre : École connectée à Campus France
+            if filters.get('campus_france_connected'):
+                print(f"👺🔎 Applying campus_france_connected filter")
+                query = query.filter(School.connection_campus_france == True)
+            
+            print(f"👺 parallel_procedure (raw): {filters.get('parallel_procedure')}")
+            # Filtre : Procédure parallèle
+            if filters.get('parallel_procedure'):
+                print(f"👺🔎 Applying parallel_procedure filter")
+                query = query.filter(self.model.parallel_procedure == True)
+            
+            # Filtre : Exonération
+            if filters.get('exoneration') is not None:
+                exoneration_value = filters['exoneration']
+                print(f"🔎 Applying exoneration filter: {exoneration_value}")
+                
+                if isinstance(exoneration_value, str):
+                    exoneration_value = int(exoneration_value)
+                
+                query = query.filter(School.exoneration_tuition == exoneration_value)
+            
+            # Filtre : Label Bienvenue en France
+            if filters.get('bienvenue_france_level'):
+                try:
+                    level = int(filters['bienvenue_france_level'])
+                    print(f"🔎 Applying bienvenue_france_level filter: == {level}")
+                    query = query.filter(
+                        self.model.bienvenue_en_france_level.isnot(None),
+                        self.model.bienvenue_en_france_level == level
+                    )
+                except (ValueError, TypeError) as e:
+                    print(f"❌ Error parsing bienvenue_france_level: {e}")
             
             # Filtre par texte de recherche
             if filters.get('search'):
@@ -396,10 +431,10 @@ class ProgramDAO:
                     )
                 )
             
-            # Filtre par durée
-            if filters.get('duration'):
-                print(f"🔍 Applying duration filter: {filters['duration']}")
-                query = query.filter(self.model.fi_school_duration == filters['duration'])
+            # Filtre par durées (maintenant un tableau)
+            if filters.get('durations') and len(filters['durations']) > 0:
+                print(f"🔎 Applying durations filter: {filters['durations']}")
+                query = query.filter(self.model.fi_school_duration.in_(filters['durations']))
             
             # Filtre par alternance
             if filters.get('alternance') is not None:
@@ -436,11 +471,20 @@ class ProgramDAO:
                 language = filters['language']
                 language_conditions = []
                 for year in range(1, 6):
-                    lang_field = getattr(self.model, f'language_tech_level{year}', None)
-                    if lang_field:
-                        language_conditions.append(lang_field.ilike(f'%{language}%'))
+                    primary_field = getattr(self.model, f'language_tech_level{year}', None)
+                    unofficial_field = getattr(self.model, f'language_tech_level_unofficial{year}', None)
+
+                    if primary_field is not None and unofficial_field is not None:
+                        # Use primary if not empty, otherwise fallback to unofficial
+                        coalesced = func.coalesce(func.nullif(primary_field, ''), unofficial_field)
+                        language_conditions.append(coalesced.ilike(f'%{language}%'))
+                    elif primary_field is not None:
+                        language_conditions.append(primary_field.ilike(f'%{language}%'))
+                    elif unofficial_field is not None:
+                        language_conditions.append(unofficial_field.ilike(f'%{language}%'))
+
                 if language_conditions:
-                    query = query.filter(or_(*language_conditions)) 
+                    query = query.filter(or_(*language_conditions))
 
             if filters.get('tuition_min') or filters.get('tuition_max'):
                 try:
