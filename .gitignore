@@ -140,3 +140,4 @@ output/
 selenium_work/
 uploads/
 static/app.py
+app.py
