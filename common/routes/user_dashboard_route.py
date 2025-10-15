@@ -6,6 +6,8 @@ from common.models.user_favorite import UserFavorite
 from common.models.accompany_request import AccompanyRequest
 from common.models.program import Program
 from common.models.school import School
+from common.models.forum_question import ForumQuestion
+from common.models.forum_answer import ForumAnswer
 from common.models import db
 from sqlalchemy import func, distinct
 from functools import wraps
@@ -59,6 +61,23 @@ def init_routes(app):
                               .order_by(UserFavorite.created_at.desc())
                               .limit(5)
                               .all())
+            
+            user_questions = ForumQuestion.query.filter_by(
+                user_id=current_user.id,
+                is_active=True
+            ).order_by(ForumQuestion.created_at.desc()).limit(5).all()
+            
+            questions_data = []
+            for q in user_questions:
+                # Compter les réponses
+                answers_count = ForumAnswer.query.filter_by(
+                    question_id=q.id,
+                    is_active=True
+                ).count()
+                
+                q_dict = q.to_dict(current_user_id=current_user.id)
+                q_dict['answers_count'] = answers_count
+                questions_data.append(q_dict)
             
             recent_programs = []
             for favorite, program in recent_favorites:
@@ -152,6 +171,7 @@ def init_routes(app):
                         'accompany_requests_count': total_requests,
                         'pending_requests_count': pending_requests,
                         'completed_requests_count': completed_requests,
+                        'questions_count': len(questions_data),
                         'last_login': current_user.last_login.isoformat() if current_user.last_login else None
                     },
                     'recent_favorites': recent_programs,
@@ -159,6 +179,7 @@ def init_routes(app):
                         {'subdomain_id': stat.subdomain_id, 'count': stat.count}
                         for stat in domain_stats
                     ],
+                    'user_questions': questions_data,
                     # ✅ NOUVELLES SECTIONS
                     'accompany_requests': accompany_data,
                     'recommendations': recommendations,
