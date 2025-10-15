@@ -359,16 +359,12 @@ class ProgramDAO:
             print(f"🔍 Applying filters: {list(filters.keys())}")
 
             # ✅ NOUVEAUX FILTRES CAMPUS FRANCE
-            print(f"👺 campus_france_connected (raw): {filters.get('campus_france_connected')}")
             # Filtre : École connectée à Campus France
             if filters.get('campus_france_connected'):
-                print(f"👺🔎 Applying campus_france_connected filter")
                 query = query.filter(School.connection_campus_france == True)
             
-            print(f"👺 parallel_procedure (raw): {filters.get('parallel_procedure')}")
             # Filtre : Procédure parallèle
             if filters.get('parallel_procedure'):
-                print(f"👺🔎 Applying parallel_procedure filter")
                 query = query.filter(self.model.parallel_procedure == True)
             
             # Filtre : Exonération
