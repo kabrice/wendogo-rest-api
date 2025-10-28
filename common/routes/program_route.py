@@ -1,8 +1,11 @@
 # common/routes/program_route.py - Version optimisée avec cache
 
+from urllib import response
 from flask import request, jsonify
 from common.daos.program_dao import program_dao
+from common.utils.i18n_helpers import get_locale_from_request
 from common.utils.cache_decorator import get_cached_filter_options, add_cache_headers
+from common.serializers import ProgramSerializer, BaseSerializer
 from pprint import pprint
 
 def init_routes(app):
@@ -21,15 +24,44 @@ def init_routes(app):
             response = jsonify(program)
             return add_cache_headers(response, max_age=1800)  # 30 minutes
         return jsonify({"error": "Program not found"}), 404
-    
+
     @app.route('/programs/slug/<string:slug>', methods=['GET'])
     def get_program_by_slug(slug):
         """Récupère un programme par son slug"""
-        program = program_dao.get_program_by_slug(slug)
-        if program:
-            response = jsonify(program)
-            return add_cache_headers(response, max_age=1800)  # 30 minutes
-        return jsonify({"error": "Program not found"}), 404
+        try:
+            # ✅ Récupérer la locale
+            locale = get_locale_from_request(request)
+            #print('locale:🥶', locale)
+            # ✅ Récupérer l'OBJET program (pas le dict)
+            program = program_dao.get_program_by_slug(slug)
+            if not program:
+                return jsonify({
+                    'success': False,
+                    'error': 'Program not found'
+                }), 404
+            
+            # ✅ Sérialiser avec la locale
+            serialized = ProgramSerializer.serialize(
+                program,
+                locale=locale,
+                include_school=True
+            )
+            
+            # ✅ IMPORTANT : jsonify AVANT add_cache_headers
+            response = jsonify({
+                'success': True,
+                'data': serialized
+            })
+            
+            return add_cache_headers(response, max_age=1800)
+        except Exception as e:
+            print(f"❌ Error in get_program_by_slug: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            }), 500
     
     @app.route('/programs/slugs', methods=['GET'])
     def get_all_program_slugs():
@@ -92,7 +124,9 @@ def init_routes(app):
         try:
             data = request.json or {}
             filters = data.copy()
-            
+
+            locale = request.args.get('locale', 'fr')
+
             # Extraire les paramètres de pagination
             page = filters.pop('page', 1)
             limit = filters.pop('limit', 12)
@@ -123,7 +157,7 @@ def init_routes(app):
             print(f"🔎 Filters after processing: {filters}")
             
             # Utiliser la méthode paginée
-            result = program_dao.search_programs_paginated(filters, page, limit)
+            result = program_dao.search_programs_paginated(filters, page, limit, locale)
             
             return jsonify(result)
         

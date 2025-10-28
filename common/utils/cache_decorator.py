@@ -1,11 +1,17 @@
-# common/utils/cache_decorator.py - Cache decorator pour Flask
+# common/utils/cache_decorator.py - VERSION MODIFIÉE avec support i18n
 
 import functools
 import json
 import time
-from datetime import datetime, timedelta
-from flask import current_app, jsonify
+from datetime import datetime, timedelta, timezone
+from flask import current_app, jsonify, request
 import hashlib
+from common.services.domain_service import DomainService
+from common.models.program import Program
+from common.models.subdomain import Subdomain
+from common.utils.i18n_helpers import get_localized_field
+from sqlalchemy import or_
+
 
 # ✅ Cache en mémoire simple pour le développement
 class MemoryCache:
@@ -76,37 +82,172 @@ def cached(timeout=1800, key_prefix=''):
         return decorated_function
     return decorator
 
-# ✅ Cache spécialisé pour les domaines
-@cached(timeout=3600, key_prefix='domains')  # 1 heure
-def get_cached_domains():
-    """Cache les domaines avec leurs sous-domaines actifs"""
-    from common.services.domain_service import DomainService
-    return DomainService.get_domains_with_active_programs_optimized()
+@cached(timeout=3600, key_prefix='domains')
+def get_cached_domains(locale='fr'):
+    
+    domains = DomainService.get_domains_with_active_programs_optimized(locale)
+    
+    localized_domains = []
+    for domain in domains:
+        # Si EN, recalculer le comptage pour programmes EN uniquement
+        if locale == 'en':
+            subdomain_ids = [sd['id'] for sd in domain.get('subdomains', [])]
+            
+            # Compter programmes EN
+            total_en = Program.query.filter(
+                Program.is_active == True,
+                or_(
+                    Program.sub_domain1_id.in_(subdomain_ids),
+                    Program.sub_domain2_id.in_(subdomain_ids),
+                    Program.sub_domain3_id.in_(subdomain_ids)
+                ),
+                Program.name_en.isnot(None),
+                Program.name_en != ''
+            ).distinct().count()
+            
+            # Recalculer pour chaque subdomain
+            localized_subdomains = []
+            for subdomain in domain.get('subdomains', []):
+                count_en = Program.query.filter(
+                    Program.is_active == True,
+                    or_(
+                        Program.sub_domain1_id == subdomain['id'],
+                        Program.sub_domain2_id == subdomain['id'],
+                        Program.sub_domain3_id == subdomain['id']
+                    ),
+                    Program.name_en.isnot(None),
+                    Program.name_en != ''
+                ).distinct().count()
+                
+                if count_en > 0:  # Ne garder que ceux avec programmes EN
+                    localized_subdomains.append({
+                        'id': subdomain['id'],
+                        'domain_id': subdomain['domain_id'],
+                        'name': subdomain.get('name_en') or subdomain['name'],
+                        'program_count': count_en
+                    })
+            
+            if total_en > 0:
+                localized_domains.append({
+                    'id': domain['id'],
+                    'level_id': domain.get('level_id'),
+                    'name': domain.get('name_en') or domain['name'],
+                    'total_programs': total_en,
+                    'subdomains': localized_subdomains
+                })
+        else:
+            # FR : utiliser les comptages existants
+            localized_domains.append({
+                'id': domain['id'],
+                'level_id': domain.get('level_id'),
+                'name': domain['name'],
+                'total_programs': domain.get('total_programs', 0),
+                'subdomains': [
+                    {
+                        'id': sd['id'],
+                        'domain_id': sd['domain_id'],
+                        'name': sd['name'],
+                        'program_count': sd['program_count']
+                    }
+                    for sd in domain.get('subdomains', [])
+                ]
+            })
+    
+    return localized_domains
 
-# ✅ Cache pour les écoles
+@cached(timeout=1800, key_prefix='subdomains')  # Cache global de 30min
+def get_cached_subdomains(locale='fr', domain_id=None):
+    """
+    Fonction interne cachée pour récupérer les subdomains
+    Le cache est différencié par les arguments (locale, domain_id)
+    """
+    current_app.logger.info(f"🔍 get_cached_subdomains called with locale={locale}, domain_id={domain_id}")
+    
+    query = Subdomain.query
+    
+    if domain_id:
+        query = query.filter_by(domain_id=domain_id)
+    
+    subdomains = query.all()
+    
+    result = []
+    for subdomain in subdomains:
+        # ✅ Localiser le nom selon la locale
+        localized_name = get_localized_field(subdomain, 'name', locale)
+        
+        subdomain_dict = {
+            'id': subdomain.id,
+            'name': localized_name,  # ✅ Déjà localisé
+            'domain_id': subdomain.domain_id,
+            'program_count': subdomain.program_count if hasattr(subdomain, 'program_count') else 0
+        }
+        
+        result.append(subdomain_dict)
+    
+    current_app.logger.info(f"✅ Cached {len(result)} subdomains for locale={locale}")
+    if result:
+        current_app.logger.debug(f"📝 First subdomain: {result[0]}")
+    
+    return result
+
+# ✅ Cache pour les écoles (pas de localisation nécessaire)
 @cached(timeout=1800, key_prefix='schools')  # 30 minutes
 def get_cached_schools_preview():
     """Cache l'aperçu des écoles"""
     from common.daos.school_dao import school_dao
     return school_dao.get_schools_preview()
 
-# ✅ Cache pour les options de filtres
+# ✅ Cache pour les options de filtres (pas de localisation)
 @cached(timeout=900, key_prefix='filters')  # 15 minutes
 def get_cached_filter_options():
     """Cache les options de filtres"""
     from common.daos.program_dao import program_dao
     return program_dao.get_filter_options()
 
-# ✅ Cache pour les statistiques
-@cached(timeout=600, key_prefix='stats')  # 10 minutes
-def get_cached_global_stats():
-    """Cache les statistiques globales"""
+# ✅ Cache pour les statistiques AVEC LOCALE
+@cached(timeout=600, key_prefix='stats')
+def get_cached_global_stats(locale='fr'):
+    """
+    Cache les statistiques globales
+    En mode anglais, filtre uniquement les programmes avec traduction anglaise
+    """
     from common.daos.program_dao import program_dao
     from common.daos.school_dao import school_dao
+    from common.models.program import Program
+    from common.models import db
+    
+    if locale == 'en':
+        try:
+            # Compter programmes EN
+            program_count = Program.query.filter(
+                Program.is_active == True,
+                Program.name_en.isnot(None),
+                Program.name_en != ''
+            ).count()
+            
+            # Compter écoles distinctes avec programmes EN
+            from sqlalchemy import func, distinct
+            school_count = db.session.query(
+                func.count(distinct(Program.school_id))
+            ).filter(
+                Program.is_active == True,
+                Program.name_en.isnot(None),
+                Program.name_en != '',
+                Program.school_id.isnot(None)
+            ).scalar()
+            
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            program_count = program_dao.get_programs_count()
+            school_count = school_dao.get_schools_count()
+    else:
+        # FR : Tous les programmes actifs
+        program_count = program_dao.get_programs_count()
+        school_count = school_dao.get_schools_count()
     
     return {
-        'total_programs': program_dao.get_programs_count(),
-        'total_schools': school_dao.get_schools_count(),
+        'total_programs': program_count,
+        'total_schools': school_count,
         'satisfaction_rate': 95,
         'support_availability': '24/7'
     }
@@ -128,6 +269,12 @@ class CacheManager:
         current_app.logger.info(f"🗑️ Cleared {len(keys_to_delete)} cache entries for pattern: {pattern}")
     
     @staticmethod
+    def clear_locale_cache(locale):
+        """Vide le cache pour une locale spécifique"""
+        CacheManager.clear_pattern(f":{locale}")
+        current_app.logger.info(f"🗑️ Cleared cache for locale: {locale}")
+    
+    @staticmethod
     def get_stats():
         """Retourne les statistiques du cache"""
         return {
@@ -142,11 +289,13 @@ class CacheManager:
         current_app.logger.info("🔥 Warming up cache...")
         
         try:
-            # Précharger les données principales
-            get_cached_domains()
+            # Précharger les données principales pour FR et EN
+            get_cached_domains('fr')
+            get_cached_domains('en')
             get_cached_schools_preview()
             get_cached_filter_options()
-            get_cached_global_stats()
+            get_cached_global_stats('fr')
+            get_cached_global_stats('en')
             
             current_app.logger.info("✅ Cache warm-up completed")
         except Exception as e:
@@ -157,14 +306,13 @@ def add_cache_headers(response, max_age=1800):
     """Ajoute les headers de cache HTTP"""
     response.headers['Cache-Control'] = f'public, max-age={max_age}'
     response.headers['ETag'] = f'"{hash(response.get_data())}"'
-    response.headers['Last-Modified'] = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
+    response.headers['Last-Modified'] = datetime.now(timezone.utc).strftime('%a, %d %b %Y %H:%M:%S GMT')
     return response
 
 # ✅ Middleware de cache HTTP
 def init_cache_middleware(app):
     @app.after_request
     def add_cache_headers_middleware(response):
-        # ✅ CORRECTION: Utiliser request depuis Flask, pas response
         from flask import request
         
         # Ajouter des headers de cache pour les endpoints statiques

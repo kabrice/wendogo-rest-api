@@ -10,6 +10,7 @@ class Subdomain(db.Model):
 
     id = db.Column(db.String(8), primary_key=True)
     name = db.Column(db.String(255), nullable=False)
+    name_en = db.Column(db.String(255), nullable=True)
     domain_id = db.Column(db.String(8), db.ForeignKey('domain.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, default=db.func.current_timestamp())
@@ -17,6 +18,8 @@ class Subdomain(db.Model):
     updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=1) 
 
     domain = db.relationship('Domain', backref='subdomains')
+        # Relations
+    #programs = db.relationship('Program', backref='subdomain', lazy=True)
 
     def as_dict(self):
         excluded_fields = ['created_at', 'updated_at', 'created_by', 'updated_by']

@@ -2,7 +2,9 @@
 
 from flask import request, jsonify
 from common.daos.school_dao import school_dao
+from common.utils.i18n_helpers import get_locale_from_request
 from common.utils.cache_decorator import get_cached_schools_preview, add_cache_headers
+from common.serializers import SchoolSerializer
 
 def init_routes(app):
     @app.route('/schools/filtring', methods=['POST'])
@@ -37,8 +39,13 @@ def init_routes(app):
     def get_school_by_id(school_id):
         """Récupère une école par son ID"""
         school = school_dao.get_school_by_id(school_id)
+        locale = get_locale_from_request(request)
         if school:
-            response = jsonify(school)
+            serialized = SchoolSerializer.serialize(
+                school,
+                locale=locale
+            )
+            response = jsonify(serialized)
             return add_cache_headers(response, max_age=1800)  # 30 minutes
         return jsonify({"error": "School not found"}), 404
     
@@ -46,8 +53,13 @@ def init_routes(app):
     def get_school_by_slug(slug):
         """Récupère une école par son slug"""
         school = school_dao.get_school_by_slug(slug)
+        locale = get_locale_from_request(request)
         if school:
-            response = jsonify(school)
+            serialized = SchoolSerializer.serialize(
+                school,
+                locale=locale
+            )
+            response = jsonify(serialized)
             return add_cache_headers(response, max_age=1800)  # 30 minutes
         return jsonify({"error": "School not found"}), 404
     

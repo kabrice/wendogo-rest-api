@@ -68,53 +68,5 @@ class DomainDAO:
                 result.append(domain_data)
         
         return result
-def get_all_domains_with_programs_optimized(self):
-    """Utilise la vue optimisée v_domains_with_programs"""
-    try:
-        # Utiliser la vue au lieu de calculs complexes
-        result = db.session.execute(text("""
-            SELECT id, name, level_id, total_programs 
-            FROM v_domains_with_programs 
-            ORDER BY total_programs DESC
-        """)).fetchall()
-        
-        domains = []
-        for row in result:
-            domain_data = {
-                'id': row.id,
-                'name': row.name, 
-                'level_id': row.level_id,
-                'total_programs': row.total_programs
-            }
-            
-            # Récupérer les sous-domaines avec la vue
-            subdomains_result = db.session.execute(text("""
-                SELECT id, name, domain_id, program_count
-                FROM v_subdomains_with_programs
-                WHERE domain_id = :domain_id
-                ORDER BY program_count DESC
-            """), {'domain_id': row.id}).fetchall()
-            
-            active_subdomains = []
-            for sub_row in subdomains_result:
-                subdomain_data = {
-                    'id': sub_row.id,
-                    'name': sub_row.name,
-                    'domain_id': sub_row.domain_id,
-                    'program_count': sub_row.program_count
-                }
-                active_subdomains.append(subdomain_data)
-            
-            if active_subdomains:
-                domain_data['subdomains'] = active_subdomains
-                domains.append(domain_data)
-        
-        print(f"✅ Used optimized views - retrieved {len(domains)} domains")
-        return domains
-        
-    except Exception as e:
-        print(f"❌ Views not available, falling back: {e}")
-        # Fallback vers la méthode normale
-        return self.get_all_domains()
-        
+   
 domain_dao = DomainDAO(Domain)

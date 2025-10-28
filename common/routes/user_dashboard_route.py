@@ -8,6 +8,7 @@ from common.models.program import Program
 from common.models.school import School
 from common.models.forum_question import ForumQuestion
 from common.models.forum_answer import ForumAnswer
+from common.utils.i18n_helpers import get_locale_from_request
 from common.models import db
 from sqlalchemy import func, distinct
 from functools import wraps
@@ -50,9 +51,10 @@ def init_routes(app):
     def get_user_dashboard(current_user):
         """Dashboard utilisateur avec statistiques et accompagnement"""
         try:
+            from flask import request
             # Compter les favoris
             favorites_count = UserFavorite.query.filter_by(user_id=current_user.id).count()
-            
+            locale = get_locale_from_request(request)
             # Récupérer les derniers favoris ajoutés
             recent_favorites = (db.session.query(UserFavorite, Program)
                               .join(Program, UserFavorite.program_id == Program.id)
@@ -83,11 +85,11 @@ def init_routes(app):
             for favorite, program in recent_favorites:
                 program_data = {
                     'id': program.id,
-                    'title': program.name,
+                    'title': (program.name_en or program.name) if locale == 'en' else program.name,
                     'school_name': program.school_name,
                     'school_logo_path': None,
                     'grade': program.grade,
-                    'duration': program.fi_school_duration,
+                    'duration': (program.fi_school_duration_en or program.fi_school_duration) if locale == 'en' else program.fi_school_duration,
                     'favorited_at': favorite.created_at.isoformat()
                 }
                 # Fetch school logo_path if available
@@ -142,17 +144,17 @@ def init_routes(app):
                 if latest_request.offer_id == 'orientation':
                     recommendations.append({
                         'type': 'next_step',
-                        'title': 'Préparez votre dossier',
-                        'description': 'Maintenant que vous avez choisi vos formations, préparez votre dossier Campus France.',
-                        'action': 'Voir le Pack Visa',
+                        'title': 'Préparez votre dossier' if locale == 'fr' else 'Prepare your application',
+                        'description': 'Maintenant que vous avez choisi vos formations, préparez votre dossier Campus France.' if locale == 'fr' else 'Now that you have chosen your programs, prepare your Campus France application.',
+                        'action': 'Voir le Pack Visa' if locale == 'fr' else 'See the Visa Pack',
                         'link': '/accompagnement#visa'
                     })
                 elif latest_request.offer_id == 'visa':
                     recommendations.append({
                         'type': 'next_step',
-                        'title': 'Préparez votre installation',
-                        'description': 'Une fois votre visa obtenu, préparez votre arrivée en France.',
-                        'action': 'Voir le Pack Installation',
+                        'title': 'Préparez votre installation' if locale == 'fr' else 'Prepare your installation',
+                        'description': 'Une fois votre visa obtenu, préparez votre arrivée en France.' if locale == 'fr' else 'Once your visa is obtained, prepare for your arrival in France.',
+                        'action': 'Voir le Pack Installation' if locale == 'fr' else 'See the Installation Pack',
                         'link': '/accompagnement#installation'
                     })
             
@@ -186,22 +188,22 @@ def init_routes(app):
                     'quick_actions': [
                         {
                             'type': 'favorites',
-                            'title': 'Mes Favoris',
-                            'description': f'{favorites_count} formation(s) sauvegardée(s)',
+                            'title': 'Mes Favoris' if locale == 'fr' else 'My Favorites',
+                            'description': f'{favorites_count} formation(s) sauvegardée(s)' if locale == 'fr' else f'{favorites_count} saved program(s)',
                             'link': '/favorites',
                             'icon': 'heart'
                         },
                         {
                             'type': 'search',
-                            'title': 'Rechercher',
-                            'description': 'Trouvez de nouvelles formations',
+                            'title': 'Rechercher' if locale == 'fr' else 'Search',
+                            'description': 'Trouvez de nouvelles formations' if locale == 'fr' else 'Find new programs',
                             'link': '/',
                             'icon': 'search'
                         },
                         {
                             'type': 'accompany',
-                            'title': 'Accompagnement',
-                            'description': 'Bénéficiez d\'un accompagnement personnalisé',
+                            'title': 'Accompagnement' if locale == 'fr' else 'Support',
+                            'description': 'Bénéficiez d\'un accompagnement personnalisé' if locale == 'fr' else 'Get personalized support',
                             'link': '/accompagnement',
                             'icon': 'graduation-cap'
                         }

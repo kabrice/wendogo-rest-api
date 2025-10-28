@@ -19,16 +19,12 @@ class SchoolDAO:
     def get_school_by_id(self, school_id):
         """Récupère une école par son ID"""
         school = self.model.query.filter_by(id=school_id).first()
-        if school:
-            return school.as_dict()
-        return None
+        return school
     
     def get_school_by_slug(self, slug):
         """Récupère une école par son slug"""
         school = self.model.query.filter_by(slug=slug).first()
-        if school:
-            return school.as_dict()
-        return None
+        return school
     
     def get_all_school_slugs(self):
         """Récupère tous les slugs des écoles publiques"""
@@ -66,7 +62,7 @@ class SchoolDAO:
         schools = query.all()
         return [school.as_dict() for school in schools]
  
-    def get_similar_schools(self, school_id, limit=3):
+    def get_similar_schools(self, school_id, limit=3, locale='fr'):
         """Récupère les écoles similaires avec stratégie basée sur les sous-domaines"""
         import re
         from common.models.program import Program

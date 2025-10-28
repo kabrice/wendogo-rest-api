@@ -2,15 +2,36 @@
 
 from flask import request, jsonify
 from common.daos.domain_dao import domain_dao
+from common.models.domain import Domain
 from common.utils.cache_decorator import get_cached_domains, add_cache_headers
+from common.utils.i18n_helpers import get_localized_field, get_locale_from_request
+from common.services.domain_service import DomainService
+from common.utils.serializers import domain_to_dict
+
 
 def init_routes(app):
     @app.route('/domains', methods=['GET'])
-    def get_all_domains():
-        """Récupère tous les domaines avec leurs sous-domaines qui ont des programmes"""
-        # Utiliser la nouvelle méthode qui filtre par programmes
-        domains = domain_dao.get_all_domains_with_programs()
-        return jsonify(domains)
+    def get_domains():
+        """Récupère tous les domaines avec support i18n (AVEC CACHE)"""
+        locale = get_locale_from_request(request)
+        print(f"🌍🌍 Current locale: {locale}")
+        try:
+            # Utiliser la version cachée avec locale
+            domains = get_cached_domains(locale)
+            response = jsonify({
+                'success': True,
+                'data': domains
+            })
+            
+            # Ajouter headers de cache HTTP
+            return add_cache_headers(response, max_age=3600)  # 1 heure
+        
+        except Exception as e:
+            app.logger.error(f"❌ Error in get_domains: {e}")
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            }), 500
     
     @app.route('/domains/all', methods=['GET'])
     def get_all_domains_complete():

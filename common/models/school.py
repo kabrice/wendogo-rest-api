@@ -19,10 +19,12 @@ class School(db.Model):
     phone = db.Column(db.String(50), nullable=True)
     email = db.Column(db.String(255), nullable=True)
     description = db.Column(db.Text, nullable=True)
+    description_en = db.Column(db.Text, nullable=True)
     
     # Frais de scolarité et exonérations
     exoneration_tuition = db.Column(db.Integer, nullable=True)
     exoneration_tuition_comment = db.Column(db.Text, nullable=True)
+    exoneration_tuition_comment_en = db.Column(db.Text, nullable=True)
     
     # Statut et accréditations
     hors_contrat = db.Column(db.Boolean, nullable=False, default=False)
@@ -32,12 +34,15 @@ class School(db.Model):
     alternance_rate = db.Column(db.String(20), nullable=True)
     alternance_comment = db.Column(db.Text, nullable=True)
     alternance_comment_tech = db.Column(db.Text, nullable=True)
+    alternance_comment_tech_en = db.Column(db.Text, nullable=True)
     work_study_programs = db.Column(db.Text, nullable=True)
+    work_study_programs_en = db.Column(db.Text, nullable=True)
     
     # Étudiants internationaux
     international_student_rate = db.Column(db.String(20), nullable=True)
     international_student_rate_tech = db.Column(db.String(50), nullable=True)
     international_student_comment = db.Column(db.Text, nullable=True)
+    international_student_comment_en = db.Column(db.Text, nullable=True)
     international_student_comment_tech = db.Column(db.Text, nullable=True)
     
     # Campus France
@@ -56,24 +61,34 @@ class School(db.Model):
     
     # Rankings
     national_ranking = db.Column(db.Text, nullable=True)
+    national_ranking_en = db.Column(db.Text, nullable=True)
     international_ranking = db.Column(db.Text, nullable=True)
+    international_ranking_en = db.Column(db.Text, nullable=True)
     
     # Support international
     international_support_before_coming = db.Column(db.Text, nullable=True)
+    international_support_before_coming_en = db.Column(db.Text, nullable=True)
     international_support_after_coming = db.Column(db.Text, nullable=True)
+    international_support_after_coming_en = db.Column(db.Text, nullable=True)
     
     # Admission et partenariats
     general_entry_requirements = db.Column(db.Text, nullable=True)
+    general_entry_requirements_en = db.Column(db.Text, nullable=True)
     partnerships = db.Column(db.Text, nullable=True)
+    partnerships_en = db.Column(db.Text, nullable=True)
     facilities = db.Column(db.Text, nullable=True)
+    facilities_en = db.Column(db.Text, nullable=True)
     
     # Visibilité
     is_public = db.Column(db.Boolean, nullable=False, default=False)
     
     # SEO
     seo_title = db.Column(db.String(255), nullable=True)
+    seo_title_en = db.Column(db.String(255), nullable=True)
     seo_description = db.Column(db.Text, nullable=True)
+    seo_description_en = db.Column(db.Text, nullable=True)
     seo_keywords = db.Column(db.Text, nullable=True)
+    seo_keywords_en = db.Column(db.Text, nullable=True)
     
     # Relations étrangères
     country_id = db.Column(db.Integer, db.ForeignKey('countries.id'), nullable=False, default=75)
@@ -90,27 +105,104 @@ class School(db.Model):
     
     # Relations
     university = db.relationship('University', backref=db.backref('schools', lazy=True))
+     # Relations
+    #program = db.relationship('Program', backref='school', lazy=True)   
+    # ========== MÉTHODES I18N ==========
     
-    def as_dict(self):
-        """Convertit l'objet en dictionnaire, excluant les champs sensibles"""
-        excluded_fields = [
-            'created_at', 'updated_at', 'created_by', 'updated_by', 
-            'country_id', 'university_id', 'educational_language_id'
+    # Liste des champs traduisibles
+    TRANSLATABLE_FIELDS = [
+        'name', 'description', 'alternance_comment_tech', 'work_study_programs',
+        'international_student_comment', 'national_ranking', 'international_ranking',
+        'international_support_before_coming', 'international_support_after_coming',
+        'general_entry_requirements', 'partnerships', 'facilities', 'exoneration_tuition_comment'
+        'seo_title', 'seo_description', 'seo_keywords'
+    ]
+    
+    def get_localized(self, field: str, locale: str = 'fr'):
+        """
+        Retourne le champ dans la langue demandée.
+        Si la traduction n'existe pas, retourne la version française.
+        
+        Args:
+            field: Nom du champ (ex: 'name', 'description')
+            locale: 'fr' ou 'en'
+        
+        Returns:
+            Valeur du champ dans la langue demandée
+        """
+        if locale == 'en' and field in self.TRANSLATABLE_FIELDS:
+            # Essayer de récupérer la version anglaise
+            en_field = f"{field}_en"
+            en_value = getattr(self, en_field, None)
+            # Si la version EN existe et n'est pas vide, la retourner
+            if en_value:
+                return en_value
+        
+        # Sinon retourner la version française
+        return getattr(self, field, None)
+    
+    def to_dict(self, locale: str = 'fr'):
+        """
+        Convertit l'objet en dictionnaire dans la langue demandée.
+        
+        Args:
+            locale: 'fr' ou 'en'
+        
+        Returns:
+            Dictionnaire avec les données traduites
+        """
+        # Champs non traduisibles à inclure
+        base_fields = [
+            'id', 'slug', 'school_group', 'base_city', 'address', 'phone', 'email',
+            'exoneration_tuition',
+            'hors_contrat', 'acknowledgement',
+            'alternance_rate', 'alternance_comment',
+            'international_student_rate', 'international_student_rate_tech',
+            'international_student_comment_tech',
+            'connection_campus_france', 'rating', 'reviews_counter',
+            'url', 'facebook_url', 'x_url', 'linkedin_url', 'instagram_url',
+            'is_public', 'logo_path', 'cover_page_path'
         ]
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name not in excluded_fields}
+        
+        result = {}
+        
+        # Ajouter les champs non traduisibles
+        for field in base_fields:
+            result[field] = getattr(self, field, None)
+        
+        # Ajouter les champs traduisibles (version localisée)
+        for field in self.TRANSLATABLE_FIELDS:
+            result[field] = self.get_localized(field, locale)
+        
+        return result
     
-    def as_dict_public(self):
+    # ========== MÉTHODES EXISTANTES (mises à jour) ==========
+    
+    def as_dict(self, locale: str = 'fr'):
+        """Convertit l'objet en dictionnaire, excluant les champs sensibles"""
+        data = self.to_dict(locale=locale)
+        
+        # Exclure les champs sensibles
+        excluded = ['created_at', 'updated_at', 'created_by', 'updated_by', 
+                   'country_id', 'university_id', 'educational_language_id']
+        
+        return {k: v for k, v in data.items() if k not in excluded}
+    
+    def as_dict_public(self, locale: str = 'fr'):
         """Convertit l'objet en dictionnaire pour l'API publique"""
         if not self.is_public:
             return None
-            
-        excluded_fields = [
+        
+        data = self.to_dict(locale=locale)
+        
+        # Exclure davantage de champs pour l'API publique
+        excluded = [
             'created_at', 'updated_at', 'created_by', 'updated_by', 
             'country_id', 'university_id', 'educational_language_id',
-            'email', 'phone',
-            'is_public'
+            'email', 'phone', 'is_public'
         ]
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name not in excluded_fields}
+        
+        return {k: v for k, v in data.items() if k not in excluded}
     
     def as_dict_full(self):
         """Convertit l'objet en dictionnaire complet (pour admin)"""

@@ -9,23 +9,15 @@ from sqlalchemy import exists, distinct, text
 
 class DomainService:
     """Service pour gérer la logique métier des domaines"""
-    
+        
     @staticmethod
-    def get_domains_with_active_programs_optimized():
-        """
-        Version ULTRA OPTIMISÉE avec tables de cache
-        """
+    def get_domains_with_active_programs_optimized(locale='fr'):  # ✅ Ajouter locale
         try:
-            # ✅ NOUVEAU: Utiliser les tables de cache si elles existent
             if DomainService._cache_tables_exist():
-                return DomainService._get_domains_from_cache_tables()
+                return DomainService._get_domains_from_cache_tables(locale)  # ✅ Passer locale
             else:
-                # Fallback vers l'ancienne méthode
-                print("⚠️ Cache tables not found, using fallback method")
                 return DomainService._get_domains_legacy_method()
         except Exception as e:
-            print(f"❌ Error in optimized method: {e}")
-            # Fallback vers l'ancienne méthode
             return DomainService._get_domains_legacy_method()
     
     @staticmethod
@@ -41,22 +33,25 @@ class DomainService:
         except:
             return False
     
+    # common/services/domain_service.py
     @staticmethod
-    def _get_domains_from_cache_tables():
-        """Récupère les domaines depuis les tables de cache - ULTRA RAPIDE"""
-        print("✅ Using cache tables for domains")
+    def _get_domains_from_cache_tables(locale='fr'):
+        """Récupère les domaines selon locale"""
         
-        # Requête SQL optimisée avec les tables de cache
-        query = text("""
+        # ✅ Choisir la bonne colonne selon locale
+        count_column = 'program_count_en' if locale == 'en' else 'program_count'
+        
+        query = text(f"""
             SELECT 
                 d.id,
                 d.name,
+                d.name_en,
                 d.level_id,
-                COALESCE(dc.program_count, 0) as total_programs
+                COALESCE(dc.{count_column}, 0) as total_programs
             FROM domain d
             LEFT JOIN domain_program_counts dc ON dc.domain_id = d.id
-            WHERE COALESCE(dc.program_count, 0) > 0
-            ORDER BY dc.program_count DESC
+            WHERE COALESCE(dc.{count_column}, 0) > 0
+            ORDER BY dc.{count_column} DESC
         """)
         
         domains_result = db.session.execute(query).fetchall()
@@ -66,22 +61,24 @@ class DomainService:
             domain_data = {
                 'id': domain_row.id,
                 'name': domain_row.name,
+                'name_en': domain_row.name_en,
                 'level_id': domain_row.level_id,
                 'total_programs': domain_row.total_programs
             }
             
-            # Récupérer les sous-domaines avec cache
-            subdomains_query = text("""
+            # Sous-domaines avec bon comptage
+            subdomains_query = text(f"""
                 SELECT 
                     sd.id,
                     sd.name,
+                    sd.name_en,
                     sd.domain_id,
-                    COALESCE(sdc.program_count, 0) as program_count
+                    COALESCE(sdc.{count_column}, 0) as program_count
                 FROM subdomain sd
                 LEFT JOIN subdomain_program_counts sdc ON sdc.subdomain_id = sd.id
                 WHERE sd.domain_id = :domain_id 
-                AND COALESCE(sdc.program_count, 0) > 0
-                ORDER BY sdc.program_count DESC
+                AND COALESCE(sdc.{count_column}, 0) > 0
+                ORDER BY sdc.{count_column} DESC
             """)
             
             subdomains_result = db.session.execute(
@@ -94,6 +91,7 @@ class DomainService:
                 subdomain_data = {
                     'id': subdomain_row.id,
                     'name': subdomain_row.name,
+                    'name_en': subdomain_row.name_en,
                     'domain_id': subdomain_row.domain_id,
                     'program_count': subdomain_row.program_count
                 }
@@ -103,7 +101,6 @@ class DomainService:
                 domain_data['subdomains'] = active_subdomains
                 result.append(domain_data)
         
-        print(f"✅ Retrieved {len(result)} domains with cache tables in ~10-50ms")
         return result
     
     @staticmethod
@@ -177,7 +174,7 @@ class DomainService:
         
         # Trier par nombre total de programmes
         result.sort(key=lambda x: x['total_programs'], reverse=True)
-        
+        print("22✅✅✅Sample domain from cache✅✅✅:", result[0])
         print(f"✅ Retrieved {len(result)} domains with legacy method in ~2-5 seconds")
         return result
     
@@ -288,3 +285,7 @@ class DomainService:
             )
             .count()
         )
+    
+    @staticmethod
+    def get_all_domains():
+        return Domain.query.all()     

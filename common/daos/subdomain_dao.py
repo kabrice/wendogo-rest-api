@@ -29,14 +29,15 @@ class SubdomainDAO:
             return subdomain_data
         return None
     
-    def get_subdomains_from_ids(self, subdomain_ids):
+    def get_subdomains_from_ids(self, subdomain_ids, locale='fr'):
         """Récupère plusieurs sous-domaines par leurs IDs"""
         subdomains = self.model.query.filter(self.model.id.in_(subdomain_ids)).all()
         result = []
         for subdomain in subdomains:
             subdomain_data = subdomain.as_dict()
             if subdomain.domain:
-                subdomain_data['domain_name'] = subdomain.domain.name
+                subdomain_data['domain_name'] = subdomain.domain.name if locale == 'fr' else subdomain.domain.name_en
+                subdomain_data['name'] = subdomain.name if locale == 'fr' else subdomain.name_en
                 subdomain_data['domain_level_id'] = subdomain.domain.level_id
             result.append(subdomain_data)
         return result

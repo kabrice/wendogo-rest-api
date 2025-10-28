@@ -140,14 +140,19 @@ class ProgramDAO:
         return None
     
     def get_program_by_slug(self, slug):
-        """Récupère un programme par son slug"""
+        """Récupère un programme par son slug (retourne l'OBJET, pas un dict)"""
+        program = self.model.query.filter_by(slug=slug, is_active=True).first()
+        return program
+    
+    def get_program_by_slug_as_dict(self, slug):
+        """Récupère un programme par son slug (version dict - pour compatibilité)"""
         program = self.model.query.filter_by(slug=slug, is_active=True).first()
         if program:
             program_data = program.as_dict_with_subdomains()
             if program.school:
                 program_data['school'] = program.school.as_dict()
-                return program_data
-        return None
+            return program_data
+        return None    
     
     def get_programs_by_school_id(self, school_id):
         """Récupère tous les programmes d'une école"""
@@ -337,11 +342,11 @@ class ProgramDAO:
         
         return result
     
-    def search_programs_paginated(self, filters=None, page=1, limit=12):
-        """Recherche de programmes avec pagination côté serveur"""
-        print(f"🔍 search_programs_paginated called with filters: {filters}")
+    # common/daos/program_dao.py
+    def search_programs_paginated(self, filters=None, page=1, limit=12, locale='fr'):
+        """Recherche de programmes avec pagination et support i18n"""
+        print(f"🔍 search_programs_paginated locale={locale}, filters={filters}")
         
-        # ✅ Base query : programmes actifs dans écoles privées
         query = (self.model.query
                 .join(School, self.model.school_id == School.id)
                 .filter(
@@ -349,63 +354,56 @@ class ProgramDAO:
                     School.is_public == False
                 ))
         
-        print(f"🔍 Base query created")
+        # ✅ IMPORTANT : En mode EN, filtrer programmes avec traduction
+        if locale == 'en':
+            print("🌍 Filtering ONLY programs with English translation")
+            query = query.filter(
+                self.model.name_en.isnot(None),
+                self.model.name_en != ''
+            )
         
-        # ✅ Compter AVANT les filtres pour debug
         total_without_filters = query.count()
-        print(f"🔍 Total programs before filters: {total_without_filters}")
+        print(f"🔍 Programs before filters: {total_without_filters}")
         
         if filters:
-            print(f"🔍 Applying filters: {list(filters.keys())}")
+            # RECHERCHE TEXTUELLE
+            if filters.get('search'):
+                search_term = f"%{filters['search']}%"
+                if locale == 'en':
+                    query = query.filter(
+                        or_(
+                            self.model.name_en.ilike(search_term),
+                            self.model.description_en.ilike(search_term),
+                            self.model.skills_acquired_en.ilike(search_term),
+                            self.model.careers_en.ilike(search_term),
+                            self.model.school_name.ilike(search_term)
+                        )
+                    )
+                else:
+                    query = query.filter(
+                        or_(
+                            self.model.name.ilike(search_term),
+                            self.model.description.ilike(search_term),
+                            self.model.skills_acquired.ilike(search_term),
+                            self.model.careers.ilike(search_term),
+                            self.model.school_name.ilike(search_term)
+                        )
+                    )
 
-            # ✅ NOUVEAUX FILTRES CAMPUS FRANCE
-            # Filtre : École connectée à Campus France
+            # CAMPUS FRANCE
             if filters.get('campus_france_connected'):
                 query = query.filter(School.connection_campus_france == True)
-            
-            # Filtre : Procédure parallèle
             if filters.get('parallel_procedure'):
                 query = query.filter(self.model.parallel_procedure == True)
-            
-            # Filtre : Exonération
             if filters.get('exoneration') is not None:
-                exoneration_value = filters['exoneration']
-                print(f"🔎 Applying exoneration filter: {exoneration_value}")
-                
-                if isinstance(exoneration_value, str):
-                    exoneration_value = int(exoneration_value)
-                
-                query = query.filter(School.exoneration_tuition == exoneration_value)
-            
-            # Filtre : Label Bienvenue en France
+                query = query.filter(School.exoneration_tuition == int(filters['exoneration']))
             if filters.get('bienvenue_france_level'):
-                try:
-                    level = int(filters['bienvenue_france_level'])
-                    print(f"🔎 Applying bienvenue_france_level filter: == {level}")
-                    query = query.filter(
-                        self.model.bienvenue_en_france_level.isnot(None),
-                        self.model.bienvenue_en_france_level == level
-                    )
-                except (ValueError, TypeError) as e:
-                    print(f"❌ Error parsing bienvenue_france_level: {e}")
-            
-            # Filtre par texte de recherche
-            if filters.get('search'):
-                print(f"🔍 Applying search filter: {filters['search']}")
-                search_term = f"%{filters['search']}%"
                 query = query.filter(
-                    or_(
-                        self.model.name.ilike(search_term),
-                        self.model.description.ilike(search_term),
-                        self.model.skills_acquired.ilike(search_term),
-                        self.model.careers.ilike(search_term),
-                        self.model.school_name.ilike(search_term)
-                    )
+                    self.model.bienvenue_en_france_level == int(filters['bienvenue_france_level'])
                 )
 
-            # Filtre par niveau d'entrée
+            # NIVEAU ENTRÉE
             if filters.get('entry_level'):
-                print(f"🔍 Applying entry_level filter: {filters['entry_level']}")
                 entry_level = filters['entry_level']
                 level_conditions = []
                 for year in range(1, 6):
@@ -413,145 +411,355 @@ class ProgramDAO:
                     if level_field:
                         level_conditions.append(level_field.ilike(f'%{entry_level}%'))
                 if level_conditions:
-                    query = query.filter(or_(*level_conditions))       
+                    query = query.filter(or_(*level_conditions))
 
-            # Filtre par grade
+            # GRADE
             if filters.get('grade'):
-                print(f"🔍 Applying grade filter: {filters['grade']}")
-                grade_value = filters['grade']
-                query = query.filter(
-                    or_(
-                        self.model.grade == grade_value,
-                        self.model.state_certification_type == grade_value,
-                        self.model.state_certification_type_complement == grade_value
+                if locale == 'en':
+                    query = query.filter(
+                        or_(
+                            self.model.state_certification_type_en == filters['grade'],
+                            self.model.state_certification_type_complement_en == filters['grade']
+                        )
                     )
-                )
-            
-            # Filtre par durées (maintenant un tableau)
-            if filters.get('durations') and len(filters['durations']) > 0:
-                print(f"🔎 Applying durations filter: {filters['durations']}")
+                else:
+                    query = query.filter(
+                        or_(
+                            self.model.grade == filters['grade'],
+                            self.model.state_certification_type == filters['grade'],
+                            self.model.state_certification_type_complement == filters['grade']
+                        )
+                    )
+
+            # DURÉES
+            if filters.get('durations'):
                 query = query.filter(self.model.fi_school_duration.in_(filters['durations']))
-            
-            # Filtre par alternance
+
+            # ALTERNANCE
+            print("Filtering by alternance🇩🇿🇩🇿", filters.get('alternance'))
             if filters.get('alternance') is not None:
-                print(f"🔍 Applying alternance filter: {filters['alternance']}")
-                if isinstance(filters['alternance'], bool):
-                    has_alternance = filters['alternance']
-                else:
-                    has_alternance = str(filters['alternance']).lower() == 'true'
-                
+                has_alternance = str(filters['alternance']).lower() == 'true'
                 if has_alternance:
-                    query = query.filter(self.model.ca_school_duration.isnot(None))
+                    query = query.filter(
+                        and_(
+                            self.model.ca_school_duration.isnot(None),
+                            self.model.ca_school_duration != '',
+                            func.trim(self.model.ca_school_duration) != ''  # Exclut les espaces
+                        )
+                    )
                 else:
-                    query = query.filter(self.model.ca_school_duration.is_(None))
-            
-            # Filtre par sous-domaines - SEULEMENT si fourni
-            if filters.get('subdomain_ids') and len(filters['subdomain_ids']) > 0:
-                print(f"🔍 Applying subdomain filter: {filters['subdomain_ids']}")
+                    query = query.filter(
+                        or_(
+                            self.model.ca_school_duration.is_(None),
+                            self.model.ca_school_duration == '',
+                            func.trim(self.model.ca_school_duration) == ''
+                        )
+                    )
+
+            # SOUS-DOMAINES
+            if filters.get('subdomain_ids'):
                 subdomain_conditions = []
-                for subdomain_id in filters['subdomain_ids']:
-                    subdomain_conditions.append(self.model.sub_domain1_id == subdomain_id)
-                    subdomain_conditions.append(self.model.sub_domain2_id == subdomain_id)
-                    subdomain_conditions.append(self.model.sub_domain3_id == subdomain_id)
+                for sid in filters['subdomain_ids']:
+                    subdomain_conditions.extend([
+                        self.model.sub_domain1_id == sid,
+                        self.model.sub_domain2_id == sid,
+                        self.model.sub_domain3_id == sid
+                    ])
                 if subdomain_conditions:
                     query = query.filter(or_(*subdomain_conditions))
-            
-            # Filtre par ville
+
+            # VILLE
             if filters.get('city'):
-                print(f"🔍 Applying city filter: {filters['city']}")
                 query = query.filter(School.base_city == filters['city'])
 
-            # Filtre langue d'enseignement
+            # LANGUE
             if filters.get('language'):
-                print(f"🔍 Applying language filter: {filters['language']}")
                 language = filters['language']
                 language_conditions = []
                 for year in range(1, 6):
-                    primary_field = getattr(self.model, f'language_tech_level{year}', None)
-                    unofficial_field = getattr(self.model, f'language_tech_level_unofficial{year}', None)
-
-                    if primary_field is not None and unofficial_field is not None:
-                        # Use primary if not empty, otherwise fallback to unofficial
-                        coalesced = func.coalesce(func.nullif(primary_field, ''), unofficial_field)
-                        language_conditions.append(coalesced.ilike(f'%{language}%'))
-                    elif primary_field is not None:
-                        language_conditions.append(primary_field.ilike(f'%{language}%'))
-                    elif unofficial_field is not None:
-                        language_conditions.append(unofficial_field.ilike(f'%{language}%'))
-
+                    primary = getattr(self.model, f'language_tech_level{year}', None)
+                    unofficial = getattr(self.model, f'language_tech_level_unofficial{year}', None)
+                    if primary and unofficial:
+                        language_conditions.append(
+                            func.coalesce(func.nullif(primary, ''), unofficial).ilike(f'%{language}%')
+                        )
+                    elif primary:
+                        language_conditions.append(primary.ilike(f'%{language}%'))
+                    elif unofficial:
+                        language_conditions.append(unofficial.ilike(f'%{language}%'))
                 if language_conditions:
                     query = query.filter(or_(*language_conditions))
 
+            # FRAIS SCOLARITÉ
             if filters.get('tuition_min') or filters.get('tuition_max'):
-                try:
-                    tuition_min = int(filters['tuition_min']) if filters.get('tuition_min') else None
-                    tuition_max = int(filters['tuition_max']) if filters.get('tuition_max') else None
-                    
-                    price_filter = self._create_price_filter(
-                        self.model.tuition, 
-                        tuition_min, 
-                        tuition_max
-                    )
-                    
-                    if price_filter is not None:
-                        query = query.filter(price_filter)
-                    
-                except (ValueError, TypeError) as e:
-                    print(f"❌ Erreur dans les filtres de scolarité (paginé): {e}")
+                tuition_min = int(filters.get('tuition_min', 0))
+                tuition_max = int(filters.get('tuition_max', 999999))
+                price_filter = self._create_price_filter(self.model.tuition, tuition_min, tuition_max)
+                if price_filter is not None:
+                    query = query.filter(price_filter)
 
-            # ✅ FILTRES D'ACOMPTE
+            # ACOMPTE
             if filters.get('deposit_min') or filters.get('deposit_max'):
-                try:
-                    deposit_min = int(filters['deposit_min']) if filters.get('deposit_min') else None
-                    deposit_max = int(filters['deposit_max']) if filters.get('deposit_max') else None
-                    
-                    deposit_filter = self._create_price_filter(
-                        self.model.first_deposit, 
-                        deposit_min, 
-                        deposit_max
-                    )
-                    
-                    if deposit_filter is not None:
-                        query = query.filter(deposit_filter)
-                    
-                except (ValueError, TypeError) as e:
-                    print(f"❌ Erreur dans les filtres d'acompte (paginé): {e}")              
+                deposit_min = int(filters.get('deposit_min', 0))
+                deposit_max = int(filters.get('deposit_max', 999999))
+                deposit_filter = self._create_price_filter(self.model.first_deposit, deposit_min, deposit_max)
+                if deposit_filter is not None:
+                    query = query.filter(deposit_filter)
 
-            # Filtre par niveau RNCP
+            # RNCP
             if filters.get('rncp_level'):
-                print(f"🔍 Applying rncp_level filter: {filters['rncp_level']}")
                 query = query.filter(self.model.rncp_level == filters['rncp_level'])
-            
+
+            # DATE CANDIDATURE
             if filters.get('application_date'):
-                print(f"🔍 Applying application_date filter: {filters['application_date']}")
                 query = query.filter(self.model.application_date.ilike(f"%{filters['application_date']}%"))
 
-            # Filtre par école
+            # ÉCOLE
             if filters.get('school_id'):
-                print(f"🔍 Applying school_id filter: {filters['school_id']}")
-                query = query.filter(self.model.school_id == filters['school_id'])           
+                query = query.filter(self.model.school_id == filters['school_id'])
 
-
-        # ✅ Compter le total après filtres
         total_count = query.count()
-        print(f"🔍 Total programs after filters: {total_count}")
+        print(f"🔍 Total after filters: {total_count}")
         
-        # Appliquer la pagination
         offset = (page - 1) * limit
         programs = query.offset(offset).limit(limit).all()
-        print(f"🔍 Retrieved {len(programs)} programs for page {page}")
         
+        # ✅ LOCALISER TOUS LES CHAMPS
         result = []
         for program in programs:
             try:
-                program_data = program.as_dict_with_subdomains()
+                program_data = {}
+                
+                if locale == 'en':
+                    # ✅ CHAMPS PROGRAMME EN ANGLAIS
+                    program_data = {
+                                # Identifiants
+                                'id': program.id,
+                                'school_id': program.school_id,
+                                'school_name': program.school_name,
+                                'eef_name': program.eef_name,
+                                'slug': program.slug,
+                                
+                                # Noms et descriptions
+                                'title': program.name_en or program.name,
+                                'name': program.name_en or program.name,
+                                'description': program.description_en or program.description,
+                                'desired_profiles': program.desired_profiles_en or program.desired_profiles,
+                                'curriculum_highlights': program.curriculum_highlights_en or program.curriculum_highlights,
+                                'skills_acquired': program.skills_acquired_en or program.skills_acquired,
+                                'special_comment': program.special_comment_en or program.special_comment,
+                                
+                                # Durée et organisation
+                                'fi_school_duration': program.fi_school_duration_en or program.fi_school_duration,
+                                'fi_duration_comment': program.fi_duration_comment_en or program.fi_duration_comment,
+                                'ca_school_duration': program.ca_school_duration_en or program.ca_school_duration,
+                                'ca_program_details': program.ca_program_details_en or program.ca_program_details,
+                                
+                                # Candidatures et admissions
+                                'application_date': program.application_date_en or program.application_date,
+                                'application_date_comment': program.application_date_comment_en or program.application_date_comment,
+                                'intake': program.intake_en or program.intake,
+                                'intake_comment': program.intake_comment_en or program.intake_comment,
+                                'intake_capacity': program.intake_capacity,
+                                'url_application': program.url_application,
+                                
+                                # Domaines
+                                'sub_domain1_id': program.sub_domain1_id,
+                                'sub_domain2_id': program.sub_domain2_id,
+                                'sub_domain3_id': program.sub_domain3_id,
+                                
+                                # Certifications et grade
+                                'state_certification_type': program.state_certification_type_en or program.state_certification_type,
+                                'state_certification_type_complement': program.state_certification_type_complement_en or program.state_certification_type_complement,
+                                'state_certification_type_complement2': program.state_certification_type_complement2_en or program.state_certification_type_complement2,
+                                'rncp_level': program.rncp_level,
+                                'rncp_certifier': program.rncp_certifier,
+                                'grade': program.grade,
+                                
+                                # Partenariats
+                                'joint_preparation_with': program.joint_preparation_with_en or program.joint_preparation_with,
+                                'degree_issuer': program.degree_issuer_en or program.degree_issuer,
+                                'dual_degree_with': program.dual_degree_with_en or program.dual_degree_with,
+                                'international_double_degree': program.international_double_degree_en or program.international_double_degree,
+                                'apprenticeship_manager': program.apprenticeship_manager,
+                                
+                                # Frais de scolarité
+                                'fi_registration_fee': program.fi_registration_fee,
+                                'fi_annual_tuition_fee': program.fi_annual_tuition_fee,
+                                'tuition_comment': program.tuition_comment_en or program.tuition_comment,
+                                'tuition': program.tuition_en or program.tuition,
+                                'y1_tuition': program.y1_tuition,
+                                'y2_tuition': program.y2_tuition,
+                                'y3_tuition': program.y3_tuition,
+                                'y4_tuition': program.y4_tuition,
+                                'y5_tuition': program.y5_tuition,
+                                'first_deposit_comment': program.first_deposit_comment_en or program.first_deposit_comment,
+                                'first_deposit': program.first_deposit_en or program.first_deposit,
+                                
+                                # Admissions Année 1
+                                'y1_required_level': program.y1_required_level,
+                                'required_degree1': program.required_degree1,
+                                'y1_admission_details': program.y1_admission_details_en or program.y1_admission_details,
+                                'y1_teaching_language_with_required_level': program.y1_teaching_language_with_required_level,
+                                'language_tech_level1': program.language_tech_level1_en or program.language_tech_level1,
+                                
+                                # Admissions Année 2
+                                'y2_required_level': program.y2_required_level,
+                                'required_degree2': program.required_degree2,
+                                'y2_admission_details': program.y2_admission_details_en or program.y2_admission_details,
+                                'y2_admission_method': program.y2_admission_method_en or program.y2_admission_method,
+                                'y2_application_date': program.y2_application_date_en or program.y2_application_date,
+                                'y2_teaching_language_with_required_level': program.y2_teaching_language_with_required_level,
+                                'language_tech_level2': program.language_tech_level2_en or program.language_tech_level2,
+                                
+                                # Admissions Année 3
+                                'y3_required_level': program.y3_required_level_en or program.y3_required_level,
+                                'required_degree3': program.required_degree3,
+                                'y3_required_degree': program.y3_required_degree_en or program.y3_required_degree,
+                                'y3_admission_method': program.y3_admission_method_en or program.y3_admission_method,
+                                'y3_admission_details': program.y3_admission_details_en or program.y3_admission_details,
+                                'y3_application_date': program.y3_application_date_en or program.y3_application_date,
+                                'y3_teaching_language_with_required_level': program.y3_teaching_language_with_required_level,
+                                'language_tech_level3': program.language_tech_level3_en or program.language_tech_level3,
+                                'y3_admission_by_exam': program.y3_admission_by_exam_en or program.y3_admission_by_exam,
+                                
+                                # Admissions Année 4
+                                'y4_required_level': program.y4_required_level_en or program.y4_required_level,
+                                'required_degree4': program.required_degree4,
+                                'y4_admission_method': program.y4_admission_method_en or program.y4_admission_method,
+                                'y4_admission_details': program.y4_admission_details_en or program.y4_admission_details,
+                                'y4_application_date': program.y4_application_date_en or program.y4_application_date,
+                                'y4_teaching_language_with_required_level': program.y4_teaching_language_with_required_level,
+                                'language_tech_level4': program.language_tech_level4_en or program.language_tech_level4,
+                                
+                                # Admissions Année 5
+                                'y5_required_level': program.y5_required_level_en or program.y5_required_level,
+                                'required_degree5': program.required_degree5,
+                                'y5_admission_method': program.y5_admission_method_en or program.y5_admission_method,
+                                'y5_application_date': program.y5_application_date_en or program.y5_application_date,
+                                'y5_admission_details': program.y5_admission_details_en or program.y5_admission_details,
+                                'y5_teaching_language_with_required_level': program.y5_teaching_language_with_required_level_en or program.y5_teaching_language_with_required_level,
+                                'language_tech_level5': program.language_tech_level5_en or program.language_tech_level5,
+                                
+                                # SEO
+                                'seo_title': program.seo_title_en or program.seo_title,
+                                'seo_description': program.seo_description_en or program.seo_description,
+                                'seo_keywords': program.seo_keywords_en or program.seo_keywords,
+                                
+                                # Carrières et statistiques
+                                'careers': program.careers_en or program.careers,
+                                'corporate_partners': program.corporate_partners,
+                                'employment_rate_among_graduates': program.employment_rate_among_graduates_en or program.employment_rate_among_graduates,
+                                'success_rate_of_the_program': program.success_rate_of_the_program_en or program.success_rate_of_the_program,
+                                'starting_salary': program.starting_salary_en or program.starting_salary,
+                                
+                                # Langues non officielles
+                                'language_tech_level_unofficial1': program.language_tech_level_unofficial1_en or program.language_tech_level_unofficial1,
+                                'language_tech_level_unofficial2': program.language_tech_level_unofficial2_en or program.language_tech_level_unofficial2,
+                                'language_tech_level_unofficial3': program.language_tech_level_unofficial3_en or program.language_tech_level_unofficial3,
+                                'language_tech_level_unofficial4': program.language_tech_level_unofficial4_en or program.language_tech_level_unofficial4,
+                                'language_tech_level_unofficial5': program.language_tech_level_unofficial5_en or program.language_tech_level_unofficial5,
+                                
+                                # Métadonnées et Campus France
+                                'is_active': program.is_active,
+                                'parallel_procedure': program.parallel_procedure,
+                                'bienvenue_en_france_level': program.bienvenue_en_france_level,
+                                'contact': program.contact,
+                                'is_referenced_in_eef': program.is_referenced_in_eef,
+                                'address': program.address,
+                                'phone': program.phone,
+                                'email': program.email,
+                    }
+                else:
+                    # ✅ CHAMPS PROGRAMME EN FRANÇAIS
+                    program_data = program.as_dict_with_subdomains()
+                    program_data['title'] = program.name
+                
+                # ✅ LOCALISER SCHOOL
                 if program.school:
-                    program_data['school'] = program.school.as_dict()
-                    result.append(program_data)
+                # ✅ SCHOOL EN ANGLAIS - VERSION COMPLÈTE
+                    school_dict = {
+                        # Identifiants
+                        'id': program.school.id,
+                        'slug': program.school.slug,
+                        'school_group': program.school.school_group,
+                        'base_city': program.school.base_city,
+                        
+                        # Coordonnées
+                        'address': program.school.address,
+                        'phone': program.school.phone,
+                        'email': program.school.email,
+                        'name': program.school.name,
+                        'description': program.school.description_en or program.school.description,
+                        
+                        # Frais et exonérations
+                        'exoneration_tuition': program.school.exoneration_tuition,
+                        'exoneration_tuition_comment': program.school.exoneration_tuition_comment_en or program.school.exoneration_tuition_comment,
+                        
+                        # Statut
+                        'hors_contrat': program.school.hors_contrat,
+                        'acknowledgement': program.school.acknowledgement,
+                        
+                        # Alternance
+                        'alternance_rate': program.school.alternance_rate,
+                        'alternance_comment': program.school.alternance_comment,
+                        'alternance_comment_tech': program.school.alternance_comment_tech_en or program.school.alternance_comment_tech,
+                        'work_study_programs': program.school.work_study_programs_en or program.school.work_study_programs,
+                        
+                        # Étudiants internationaux
+                        'international_student_rate': program.school.international_student_rate,
+                        'international_student_rate_tech': program.school.international_student_rate_tech,
+                        'international_student_comment': program.school.international_student_comment_en or program.school.international_student_comment,
+                        'international_student_comment_tech': program.school.international_student_comment_tech,
+                        
+                        # Campus France
+                        'connection_campus_france': program.school.connection_campus_france,
+                        
+                        # Évaluations
+                        'rating': str(program.school.rating) if program.school.rating else None,
+                        'reviews_counter': program.school.reviews_counter,
+                        
+                        # URLs et réseaux sociaux
+                        'url': program.school.url,
+                        'facebook_url': program.school.facebook_url,
+                        'x_url': program.school.x_url,
+                        'linkedin_url': program.school.linkedin_url,
+                        'instagram_url': program.school.instagram_url,
+                        
+                        # Rankings
+                        'national_ranking': program.school.national_ranking_en or program.school.national_ranking,
+                        'international_ranking': program.school.international_ranking_en or program.school.international_ranking,
+                        
+                        # Support international
+                        'international_support_before_coming': program.school.international_support_before_coming_en or program.school.international_support_before_coming,
+                        'international_support_after_coming': program.school.international_support_after_coming_en or program.school.international_support_after_coming,
+                        
+                        # Admission et partenariats
+                        'general_entry_requirements': program.school.general_entry_requirements_en or program.school.general_entry_requirements,
+                        'partnerships': program.school.partnerships_en or program.school.partnerships,
+                        'facilities': program.school.facilities_en or program.school.facilities,
+                        
+                        # Visibilité
+                        'is_public': program.school.is_public,
+                        
+                        # SEO
+                        'seo_title': program.school.seo_title_en or program.school.seo_title,
+                        'seo_description': program.school.seo_description_en or program.school.seo_description,
+                        'seo_keywords': program.school.seo_keywords_en or program.school.seo_keywords,
+                        
+                        # Médias
+                        'logo_path': program.school.logo_path,
+                        'cover_page_path': program.school.cover_page_path,
+                    }
+                    
+                    program_data['school'] = school_dict
+                
+                result.append(program_data)
+                
             except Exception as e:
                 print(f"❌ Error processing program {program.id}: {e}")
         
-        print(f"🔍 Final result: {len(result)} programs processed successfully")
+        print(f"✅ Returning {len(result)} localized programs")
         
         return {
             'data': result,
@@ -559,9 +767,9 @@ class ProgramDAO:
             'page': page,
             'limit': limit,
             'pages': (total_count + limit - 1) // limit,
-            'success': True  # ✅ Ajouter flag de succès
+            'success': True
         }
-    
+
     def get_programs_count(self):
         """Récupère le nombre total de programmes actifs"""
         return self.model.query.filter_by(is_active=True).count()
