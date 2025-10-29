@@ -1,4 +1,3 @@
-
 # ═══════════════════════════════════════════════════════════
 # 📁 common/routes/auth_route.py (NOUVEAU)
 # ═══════════════════════════════════════════════════════════
@@ -33,9 +32,54 @@ from functools import wraps
 import jwt
 import datetime
 import os
+from common.utils.i18n_helpers import get_locale_from_request
 
-def get_email_base_template():
-    """Template de base pour tous les emails Wendogo"""
+def get_email_base_template(locale='fr'):
+    """Template de base pour tous les emails Wendogo (Français/Anglais)"""
+    
+    if locale == 'en':
+        return """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>{title} - Wendogo</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
+            <!-- Unified Header -->
+            <div style="text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0;">
+                <h1 style="margin: 0; font-size: 28px;">{header_title}! {icon}</h1>
+            </div>        
+            <!-- Main Content -->
+            <div style="background: #ffffff; padding: 40px 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                {content}
+            </div>
+            
+            <!-- Unified Footer -->
+            <div style="text-align: center; margin-top: 30px; padding: 20px; color: #6b7280; font-size: 14px;">
+                <div style="border-top: 1px solid #e5e7eb; padding-top: 20px;">
+                    <p style="margin: 0 0 10px 0;">
+                        <strong>Wendogo</strong> - Your partner to study in France
+                    </p>
+                    <p style="margin: 0 0 15px 0;">
+                        🎓 Over 3000+ private programs | 🏫 1000+ schools | 🌟 Personalized support
+                    </p>
+                    <div style="margin: 15px 0;">
+                        <a href="https://wendogo.com" style="color: #667eea; text-decoration: none; margin: 0 10px;">Website</a>
+                        <a href="https://wendogo.com/contact" style="color: #667eea; text-decoration: none; margin: 0 10px;">Contact</a>
+                    </div>
+                    <p style="margin: 15px 0 0 0; font-size: 12px; color: #9ca3af;">
+                        © 2025 Wendogo. All rights reserved.<br>
+                        You are receiving this email because you created an account on Wendogo.
+                    </p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+    
+    # Template français par défaut
     return """
     <!DOCTYPE html>
     <html>
@@ -61,7 +105,7 @@ def get_email_base_template():
                     <strong>Wendogo</strong> - Votre partenaire pour étudier en France
                 </p>
                 <p style="margin: 0 0 15px 0;">
-                    🎓 Plus de 2100+ formations privées | 🏫 500+ écoles | 🌟 Accompagnement personnalisé
+                    🎓 Plus de 3000+ formations privées | 🏫 1000+ écoles | 🌟 Accompagnement personnalisé
                 </p>
                 <div style="margin: 15px 0;">
                     <a href="https://wendogo.com" style="color: #667eea; text-decoration: none; margin: 0 10px;">Site web</a>
@@ -77,10 +121,69 @@ def get_email_base_template():
     </html>
     """
 
-def get_verification_email_template(email_data):
-    """Template unifié pour l'email de vérification"""
-    base_template = get_email_base_template()
+def get_verification_email_template(email_data, locale='fr'):
+    """Template unifié pour l'email de vérification (Français/Anglais)"""
+    base_template = get_email_base_template(locale)
     
+    if locale == 'en':
+        content = f"""
+            <p style="font-size: 16px; color: #374151; line-height: 1.6; margin-bottom: 20px;">
+                Hello <strong>{email_data.get('firstname', 'User')}</strong>,
+            </p>
+            
+            <p style="font-size: 16px; color: #374151; line-height: 1.6; margin-bottom: 25px;">
+                Thank you for signing up on Wendogo! To activate your account and start exploring 
+                over <strong>3000+ private programs</strong> in <strong>1000+ French schools</strong>, 
+                please verify your email address by clicking the button below.
+            </p>
+            
+            <div style="text-align: center; margin: 35px 0;">
+                <a href="{email_data.get('verificationUrl')}" 
+                   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                          color: white; 
+                          padding: 16px 32px; 
+                          text-decoration: none; 
+                          border-radius: 25px; 
+                          font-size: 16px; 
+                          font-weight: bold;
+                          display: inline-block;
+                          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                          transition: all 0.3s ease;">
+                    ✅ Verify my email
+                </a>
+            </div>
+            
+            <div style="background: #f3f4f6; padding: 20px; border-radius: 10px; margin: 25px 0; border-left: 4px solid #667eea;">
+                <p style="margin: 0; font-size: 14px; color: #6b7280;">
+                    <strong>⏰ Important:</strong> This link expires in <strong>{email_data.get('expiresIn', '24 hours')}</strong>
+                </p>
+            </div>
+            
+            <div style="margin-top: 30px; padding-top: 25px; border-top: 1px solid #e5e7eb;">
+                <p style="font-size: 14px; color: #6b7280; margin-bottom: 15px;">
+                    <strong>Can't click the button?</strong><br>
+                    Copy and paste this link into your browser:
+                </p>
+                <div style="background: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; word-break: break-all;">
+                    <a href="{email_data.get('verificationUrl')}" style="color: #667eea; font-size: 14px; text-decoration: none;">
+                        {email_data.get('verificationUrl')}
+                    </a>
+                </div>
+            </div>
+            
+            <p style="font-size: 14px; color: #9ca3af; margin-top: 25px; text-align: center;">
+                If you didn't create an account on Wendogo, you can safely ignore this email.
+            </p>
+        """
+        
+        return base_template.format(
+            title="Verify your account",
+            icon="🎓",
+            header_title="Welcome to Wendogo",
+            content=content
+        )
+    
+    # Version française par défaut
     content = f"""
         <p style="font-size: 16px; color: #374151; line-height: 1.6; margin-bottom: 20px;">
             Bonjour <strong>{email_data.get('firstname', 'Utilisateur')}</strong>,
@@ -88,7 +191,7 @@ def get_verification_email_template(email_data):
         
         <p style="font-size: 16px; color: #374151; line-height: 1.6; margin-bottom: 25px;">
             Merci de vous être inscrit sur Wendogo ! Pour activer votre compte et commencer à explorer 
-            plus de <strong>2100+ formations privées</strong> dans <strong>500+ écoles françaises</strong>, 
+            plus de <strong>3000+ formations privées</strong> dans <strong>1000+ écoles françaises</strong>, 
             veuillez vérifier votre adresse email en cliquant sur le bouton ci-dessous.
         </p>
         
@@ -135,14 +238,78 @@ def get_verification_email_template(email_data):
         title="Vérifiez votre compte",
         icon="🎓",
         header_title="Bienvenue sur Wendogo !",
-        header_subtitle="Vérifiez votre email pour commencer votre aventure académique",
         content=content
     )
 
-def get_password_reset_email_template(email_data):
-    """Template unifié pour l'email de réinitialisation (même design que vérification)"""
-    base_template = get_email_base_template()
-    
+def get_password_reset_email_template(email_data, locale='fr'):
+    """Template unifié pour l'email de réinitialisation (Français/Anglais)"""
+    base_template = get_email_base_template(locale)
+
+    if locale == 'en':
+        content = f"""
+            <p style="font-size: 16px; color: #374151; line-height: 1.6; margin-bottom: 20px;">
+                Hello,
+            </p>
+            
+            <p style="font-size: 16px; color: #374151; line-height: 1.6; margin-bottom: 25px;">
+                You requested a password reset for your Wendogo account. 
+                No worries, it happens! Click the button below to set a new secure password.
+            </p>
+            
+            <div style="text-align: center; margin: 35px 0;">
+                <a href="{email_data.get('resetUrl')}" 
+                   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                          color: white; 
+                          padding: 16px 32px; 
+                          text-decoration: none; 
+                          border-radius: 25px; 
+                          font-size: 16px; 
+                          font-weight: bold;
+                          display: inline-block;
+                          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                          transition: all 0.3s ease;">
+                    🔄 Reset my password
+                </a>
+            </div>
+            
+            <div style="background: #fef3cd; padding: 20px; border-radius: 10px; margin: 25px 0; border-left: 4px solid #f59e0b;">
+                <p style="margin: 0; font-size: 14px; color: #92400e;">
+                    <strong>⏰ Warning:</strong> This link expires in <strong>{email_data.get('expiresIn', '1 hour')}</strong> for your security.
+                </p>
+            </div>
+            
+            <div style="background: #ecfdf5; padding: 20px; border-radius: 10px; margin: 25px 0; border-left: 4px solid #10b981;">
+                <p style="margin: 0; font-size: 14px; color: #065f46;">
+                    <strong>🛡️ Security:</strong> If you didn't request this reset, ignore this email. 
+                    Your current password remains unchanged.
+                </p>
+            </div>
+            
+            <div style="margin-top: 30px; padding-top: 25px; border-top: 1px solid #e5e7eb;">
+                <p style="font-size: 14px; color: #6b7280; margin-bottom: 15px;">
+                    <strong>Can't click the button?</strong><br>
+                    Copy and paste this link into your browser:
+                </p>
+                <div style="background: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; word-break: break-all;">
+                    <a href="{email_data.get('resetUrl')}" style="color: #667eea; font-size: 14px; text-decoration: none;">
+                        {email_data.get('resetUrl')}
+                    </a>
+                </div>
+            </div>
+            
+            <p style="font-size: 14px; color: #9ca3af; margin-top: 25px; text-align: center;">
+                This email was sent automatically, please do not reply.
+            </p>
+        """
+        
+        return base_template.format(
+            title="Reset your password",
+            icon="🔐",
+            header_title="Password Reset",
+            content=content
+        )
+
+    # Version française par défaut
     content = f"""
         <p style="font-size: 16px; color: #374151; line-height: 1.6; margin-bottom: 20px;">
             Bonjour,
@@ -203,7 +370,6 @@ def get_password_reset_email_template(email_data):
         title="Réinitialisation de votre mot de passe",
         icon="🔐",
         header_title="Réinitialisation de mot de passe",
-        header_subtitle="Définissez un nouveau mot de passe pour votre compte",
         content=content
     )
 
@@ -572,7 +738,7 @@ def init_routes(app):
     def save_verification_token():
         """Sauvegarder un token de vérification"""
         data = request.json
-        
+        locale = get_locale_from_request(request)
         try:
             email = data.get('email')
             token = data.get('token')
@@ -607,7 +773,7 @@ def init_routes(app):
     def send_verification_email():
         """Envoyer un email de vérification"""
         data = request.json
-        
+        locale = get_locale_from_request(request)
         try:
             to_email = data.get('to')
             subject = data.get('subject', 'Vérifiez votre compte Wendogo')
@@ -617,7 +783,7 @@ def init_routes(app):
                 return jsonify({'success': False, 'error': 'Email destinataire requis'}), 400
             
             # Template HTML de l'email
-            html_body = get_verification_email_template(email_data)
+            html_body = get_verification_email_template(email_data, locale)
             html_bodys = f"""
             <!DOCTYPE html>
             <html>
@@ -635,7 +801,7 @@ def init_routes(app):
                     
                     <p style="font-size: 16px; color: #333; line-height: 1.6;">
                         Merci de vous être inscrit sur Wendogo ! Pour activer votre compte et commencer à explorer 
-                        plus de <strong>2100+ formations privées</strong> dans <strong>500+ écoles françaises</strong>, 
+                        plus de <strong>3000+ formations privées</strong> dans <strong>1000+ écoles françaises</strong>, 
                         veuillez vérifier votre adresse email.
                     </p>
                     
@@ -819,7 +985,7 @@ def init_routes(app):
     def send_reset_email():
         """Envoyer un email de réinitialisation"""
         data = request.json
-        
+        locale = get_locale_from_request(request)
         try:
             to_email = data.get('to')
             subject = data.get('subject', 'Réinitialisation de votre mot de passe')
@@ -829,7 +995,7 @@ def init_routes(app):
                 return jsonify({'success': False, 'error': 'Email destinataire requis'}), 400
             
             # Template HTML de l'email de reset
-            html_body = get_password_reset_email_template(email_data)
+            html_body = get_password_reset_email_template(email_data, locale)
             # Envoyer l'email
             msg = Message(
                 subject=subject,
@@ -940,4 +1106,3 @@ def init_routes(app):
         except Exception as e:
             db.session.rollback()
             raise
-
