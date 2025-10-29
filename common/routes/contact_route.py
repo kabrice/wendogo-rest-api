@@ -1,64 +1,223 @@
-# common/routes/contact_route.py - Version avec modèle SQLAlchemy
+# common/routes/contact_route.py - Version avec modèle SQLAlchemy et support bilingue (FR/EN)
 
 from flask import request, jsonify, current_app
 from flask_mail import Message
 from common.models import db
 from common.models.contact_message import ContactMessage
 from datetime import datetime
+from common.utils.i18n_helpers import get_locale_from_request
 import re
 import os
 import logging
 
-def get_response_template(project_type):
-    """Retourne un template de réponse selon le type de projet"""
-    templates = {
-        'orientation': """
+def get_response_template(project_type, locale='fr'):
+    """Retourne un template de réponse selon le type de projet et la langue"""
+    
+    if locale == 'en':
+        templates = {
+            'orientation': """
+• Offer a free discovery call (15 min)
+• Send the link to the simulator
+• Mention our 2100+ referenced programs
+• Offer personalized support""",
+            
+            'visa': """
+• Send the complete student visa guide
+• Check Campus France eligibility
+• Offer premium visa support
+• Schedule a call to evaluate the application""",
+            
+            'campus-france': """
+• Explain the procedure by country
+• Check required documents
+• Offer Campus France support
+• Provide processing times""",
+            
+            'parcoursup': """
+• Clarify eligibility for international students
+• Explain accessible programs (BTS, CPGE, DCG)
+• Offer specialized support""",
+            
+            'logement': """
+• Send the student housing guide
+• Offer our housing partners
+• Advice on guarantees""",
+            
+            'default': """
+• Personalized response according to the request
+• Offer a discovery call
+• Redirect to relevant resources"""
+        }
+    else:
+        templates = {
+            'orientation': """
 • Proposer un appel découverte gratuit (15 min)
 • Envoyer le lien vers le simulateur
 • Mentionner nos 2100+ formations référencées
 • Proposer l'accompagnement personnalisé""",
-        
-        'visa': """
+            
+            'visa': """
 • Envoyer le guide visa étudiant complet
 • Vérifier l'éligibilité Campus France
 • Proposer l'accompagnement visa premium
 • Planifier un appel pour évaluer le dossier""",
-        
-        'campus-france': """
+            
+            'campus-france': """
 • Expliquer la procédure selon le pays
 • Vérifier les documents requis
 • Proposer l'accompagnement Campus France
 • Donner les délais de traitement""",
-        
-        'parcoursup': """
+            
+            'parcoursup': """
 • Clarifier l'éligibilité pour étudiants étrangers
 • Expliquer les formations accessibles (BTS, CPGE, DCG)
 • Proposer l'accompagnement spécialisé""",
-        
-        'logement': """
+            
+            'logement': """
 • Envoyer le guide logement étudiant
 • Proposer nos partenaires logement
 • Conseils pour les garanties""",
-        
-        'default': """
+            
+            'default': """
 • Réponse personnalisée selon la demande
 • Proposer un appel découverte
 • Rediriger vers les ressources pertinentes"""
-    }
+        }
+    
     return templates.get(project_type, templates['default'])
 
-def get_response_urgency(project_type):
-    """Retourne l'urgence de réponse selon le type"""
-    if project_type in ['visa', 'campus-france']:
-        return "⚡ URGENT - Répondre sous 1h (délais serrés)"
-    elif project_type in ['parcoursup']:
-        return "🔥 PRIORITAIRE - Répondre sous 2h"
+def get_response_urgency(project_type, locale='fr'):
+    """Retourne l'urgence de réponse selon le type et la langue"""
+    if locale == 'en':
+        if project_type in ['visa', 'campus-france']:
+            return "⚡ URGENT - Reply within 1h (tight deadlines)"
+        elif project_type in ['parcoursup']:
+            return "🔥 PRIORITY - Reply within 2h"
+        else:
+            return "📧 STANDARD - Reply within 24h"
     else:
-        return "📧 STANDARD - Répondre sous 24h"
+        if project_type in ['visa', 'campus-france']:
+            return "⚡ URGENT - Répondre sous 1h (délais serrés)"
+        elif project_type in ['parcoursup']:
+            return "🔥 PRIORITAIRE - Répondre sous 2h"
+        else:
+            return "📧 STANDARD - Répondre sous 24h"
 
-def get_confirmation_email(name, subject, project_type, message_content):
-    """Génère l'email de confirmation personnalisé"""
+def get_confirmation_email(name, subject, project_type, message_content, locale='fr'):
+    """Génère l'email de confirmation personnalisé (FR/EN)"""
     
+    if locale == 'en':
+        project_info = {
+            'orientation': {
+                'emoji': '🎓',
+                'title': 'your orientation search',
+                'next_steps': """
+🎯 NEXT STEPS FOR YOUR ORIENTATION:
+
+1. 📊 Get personalized support
+   → https://www.wendogo.com/?tab=accompany#accompany-section
+
+2. 📞 Book your discovery call (15 min free)
+   → An expert analyzes your profile
+
+3. 🎓 Receive your personalized recommendations
+   → Among our 2100+ referenced programs
+
+💡 TIP: Start with our simulator for an initial assessment!"""
+            },
+            
+            'visa': {
+                'emoji': '📋',
+                'title': 'your student visa application',
+                'next_steps': """
+📋 NEXT STEPS FOR YOUR VISA:
+
+1. 📖 Consult our complete guide
+   → https://www.wendogo.com/guides/etudier-en-france
+
+2. ✅ Check your Campus France eligibility
+   → According to your country of residence
+
+3. 🎯 Maximize your chances with our support
+   → Complete application preparation
+
+⚠️ IMPORTANT: Visa processing can be long, start early!"""
+            },
+            
+            'campus-france': {
+                'emoji': '🏛️',
+                'title': 'the Campus France procedure',
+                'next_steps': """
+🏛️ CAMPUS FRANCE HELP:
+
+1. 🌍 Check if your country is concerned
+   → Complete list in our guide
+
+2. 📋 Prepare your application step by step
+   → Documents, deadlines, interview
+
+3. 🎯 Benefit from our expertise
+   → Specialized Campus France support
+
+📅 DEADLINES: Start 6-8 months before your enrollment!"""
+            },
+            
+            'default': {
+                'emoji': '💼',
+                'title': 'your study project in France',
+                'next_steps': """
+🚀 USEFUL RESOURCES FOR YOUR PROJECT:
+
+• 📖 Complete guides: https://www.wendogo.com/guides/etudier-en-france
+• 🔍 Search programs: https://www.wendogo.com
+• 📊 Get support: https://www.wendogo.com/?tab=accompany#accompany-section
+• 💬 Immediate support: WhatsApp +33 6 68 15 60 73"""
+            }
+        }
+        
+        info = project_info.get(project_type, project_info['default'])
+        
+        return f"""
+Hello {name}! 👋
+
+Thank you for your message {info['emoji']} {info['title']}.
+
+✅ RECEIPT CONFIRMATION
+We have received your request: "{subject}"
+
+Our team of experts will analyze your situation and respond to you personally as soon as possible (usually within 2 hours during the day).
+
+{info['next_steps']}
+
+═══════════════════════════════════════════════════
+🚀 NEED AN IMMEDIATE ANSWER?
+═══════════════════════════════════════════════════
+
+📧 Email: hello@wendogo.com
+📱 WhatsApp: +33 6 68 15 60 73 (immediate response)
+💬 Messenger: https://m.me/wendogoHQ
+🌐 Website: https://www.wendogo.com
+
+═══════════════════════════════════════════════════
+📋 YOUR REQUEST SUMMARY
+═══════════════════════════════════════════════════
+Project type: {project_type} {info['emoji']}
+Subject: {subject}
+Date: {datetime.now().strftime('%m/%d/%Y at %H:%M')}
+
+Your message:
+{message_content}
+
+═══════════════════════════════════════════════════
+
+See you soon to make your study project in France a reality! 🇫🇷
+
+The Wendogo Team 🎓
+
+P.S.: Add hello@wendogo.com to your contacts so you don't miss any of our responses!
+"""
+    
+    # Version française
     project_info = {
         'orientation': {
             'emoji': '🎓',
@@ -67,7 +226,7 @@ def get_confirmation_email(name, subject, project_type, message_content):
 🎯 PROCHAINES ÉTAPES POUR VOTRE ORIENTATION :
 
 1. 📊 Faites vous accomagner
-   → http://localhost:3000/?tab=accompany#accompany-section
+   → https://www.wendogo.com/?tab=accompany#accompany-section
 
 2. 📞 Réservez votre appel découverte (15 min gratuit)
    → Un expert analyse votre profil
@@ -85,7 +244,7 @@ def get_confirmation_email(name, subject, project_type, message_content):
 📋 PROCHAINES ÉTAPES POUR VOTRE VISA :
 
 1. 📖 Consultez notre guide complet
-   → http://localhost:3000/guides/etudier-en-france
+   → https://www.wendogo.com/guides/etudier-en-france
 
 2. ✅ Vérifiez votre éligibilité Campus France
    → Selon votre pays de résidence
@@ -120,9 +279,9 @@ def get_confirmation_email(name, subject, project_type, message_content):
             'next_steps': """
 🚀 RESSOURCES UTILES POUR VOTRE PROJET :
 
-• 📖 Guides complets : http://localhost:3000/guides/etudier-en-france
-• 🔍 Recherche formations : http://localhost:3000
-• 📊 Faites vous accompanger : http://localhost:3000/?tab=accompany#accompany-section
+• 📖 Guides complets : https://www.wendogo.com/guides/etudier-en-france
+• 🔍 Recherche formations : https://www.wendogo.com
+• 📊 Faites vous accompanger : https://www.wendogo.com/?tab=accompany#accompany-section
 • 💬 Support immédiat : WhatsApp +33 6 68 15 60 73"""
         }
     }
@@ -148,7 +307,7 @@ Notre équipe d'experts va analyser votre situation et vous répondre personnell
 📧 Email : hello@wendogo.com
 📱 WhatsApp : +33 6 68 15 60 73 (réponse immédiate)
 💬 Messenger : https://m.me/wendogoHQ
-🌐 Site web : http://localhost:3000
+🌐 Site web : https://www.wendogo.com
 
 ═══════════════════════════════════════════════════
 📋 RÉCAPITULATIF DE VOTRE DEMANDE
@@ -169,26 +328,132 @@ L'équipe Wendogo 🎓
 P.S. : Ajoutez hello@wendogo.com à vos contacts pour ne manquer aucune de nos réponses !
 """
 
+def get_admin_notification_email(name, email, subject, message_content, project_type, contact_message, request, locale='fr'):
+    """Génère l'email de notification pour l'équipe admin (FR/EN)"""
+    
+    project_emoji = {
+        'orientation': '🎓',
+        'visa': '📋',
+        'campus-france': '🏛️',
+        'parcoursup': '📚',
+        'logement': '🏠',
+        'general': '❓',
+        'other': '📝'
+    }.get(project_type, '📝')
+    
+    urgency_indicator = "🔥 URGENT" if project_type in ['visa', 'campus-france', 'parcoursup'] else "📧 NORMAL"
+    
+    if locale == 'en':
+        return f"""
+{urgency_indicator} - NEW CONTACT MESSAGE
+
+═══════════════════════════════════════════════════
+📋 CONTACT INFORMATION
+═══════════════════════════════════════════════════
+👤 Name: {name}
+📧 Email: {email}
+{project_emoji} Type: {project_type.upper()}
+📝 Subject: {subject}
+
+═══════════════════════════════════════════════════
+💬 CLIENT MESSAGE
+═══════════════════════════════════════════════════
+{message_content}
+
+═══════════════════════════════════════════════════
+🔧 TECHNICAL METADATA
+═══════════════════════════════════════════════════
+🕒 Received on: {datetime.now().strftime('%m/%d/%Y at %H:%M:%S')}
+🌐 IP: {request.remote_addr}
+💻 User-Agent: {request.headers.get('User-Agent', 'Not specified')[:100]}...
+🆔 Message ID: {contact_message.id if contact_message else 'Not saved'}
+
+═══════════════════════════════════════════════════
+🚀 RECOMMENDED ACTIONS
+═══════════════════════════════════════════════════
+Type: {project_type} {project_emoji}
+
+📋 SUGGESTED RESPONSE:
+{get_response_template(project_type, locale)}
+
+⏱️ RECOMMENDED RESPONSE TIME:
+{get_response_urgency(project_type, locale)}
+
+📊 ADMIN PANEL:
+https://wendogo.com/admin (Messages tab)
+
+---
+Automatically sent from wendogo.com
+Wendogo Notification System v2.0
+"""
+    
+    # Version française
+    return f"""
+{urgency_indicator} - NOUVEAU MESSAGE DE CONTACT
+
+═══════════════════════════════════════════════════
+📋 INFORMATIONS CONTACT
+═══════════════════════════════════════════════════
+👤 Nom : {name}
+📧 Email : {email}
+{project_emoji} Type : {project_type.upper()}
+📝 Sujet : {subject}
+
+═══════════════════════════════════════════════════
+💬 MESSAGE CLIENT
+═══════════════════════════════════════════════════
+{message_content}
+
+═══════════════════════════════════════════════════
+🔧 MÉTADONNÉES TECHNIQUES
+═══════════════════════════════════════════════════
+🕒 Reçu le : {datetime.now().strftime('%d/%m/%Y à %H:%M:%S')}
+🌐 IP : {request.remote_addr}
+💻 User-Agent : {request.headers.get('User-Agent', 'Non spécifié')[:100]}...
+🆔 Message ID : {contact_message.id if contact_message else 'Non sauvegardé'}
+
+═══════════════════════════════════════════════════
+🚀 ACTIONS RECOMMANDÉES
+═══════════════════════════════════════════════════
+Type: {project_type} {project_emoji}
+
+📋 RÉPONSE SUGGÉRÉE:
+{get_response_template(project_type, locale)}
+
+⏱️ DÉLAI DE RÉPONSE RECOMMANDÉ:
+{get_response_urgency(project_type, locale)}
+
+📊 ADMIN PANEL:
+https://wendogo.com/admin (onglet Messages contact)
+
+---
+Envoyé automatiquement depuis wendogo.com
+Système de notification Wendogo v2.0
+"""
+
 def init_routes(app):
     @app.route('/api/contact/send-message', methods=['POST'])
     def send_contact_message():
         try:
             current_app.logger.info("[DEBUG] ✅ Route /send-message triggered")
+            locale = get_locale_from_request(request)
             # Récupérer les données du formulaire
             data = request.get_json()
             current_app.logger.info(f"[DEBUG] Payload: {data}")   
 
             if not data:
                 current_app.logger.error("[DEBUG] ❌ No JSON data received")
-                return jsonify({'success': False, 'error': 'Aucune donnée reçue'}), 400
+                error_msg = 'No data received' if locale == 'en' else 'Aucune donnée reçue'
+                return jsonify({'success': False, 'error': error_msg}), 400
                 
             # Validation des données
             required_fields = ['name', 'email', 'subject', 'message', 'projectType']
             for field in required_fields:
                 if not data.get(field) or not data[field].strip():
+                    error_msg = f'The {field} field is required' if locale == 'en' else f'Le champ {field} est requis'
                     return jsonify({
                         'success': False,
-                        'error': f'Le champ {field} est requis'
+                        'error': error_msg
                     }), 400
             current_app.logger.info(f"[DEBUG] MAIL_DEFAULT_SENDER: {current_app.config.get('MAIL_DEFAULT_SENDER')}")
             current_app.logger.info(f"[DEBUG] MAIL_USERNAME: {current_app.config.get('MAIL_USERNAME')}")
@@ -197,9 +462,10 @@ def init_routes(app):
             # Validation email
             email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
             if not re.match(email_regex, data['email']):
+                error_msg = 'Invalid email format' if locale == 'en' else 'Format email invalide'
                 return jsonify({
                     'success': False,
-                    'error': 'Format email invalide'
+                    'error': error_msg
                 }), 400
             
             # Préparer les données nettoyées
@@ -235,60 +501,10 @@ def init_routes(app):
             # Créer le message email pour l'équipe
             email_subject = f"[WENDOGO CONTACT] {subject}"
             
-            project_emoji = {
-                'orientation': '🎓',
-                'visa': '📋',
-                'campus-france': '🏛️',
-                'parcoursup': '📚',
-                'logement': '🏠',
-                'general': '❓',
-                'other': '📝'
-            }.get(project_type, '📝')
-            
-            urgency_indicator = "🔥 URGENT" if project_type in ['visa', 'campus-france', 'parcoursup'] else "📧 NORMAL"
-            
-            email_body = f"""
-{urgency_indicator} - NOUVEAU MESSAGE DE CONTACT
-
-═══════════════════════════════════════════════════
-📋 INFORMATIONS CONTACT
-═══════════════════════════════════════════════════
-👤 Nom : {name}
-📧 Email : {email}
-{project_emoji} Type : {project_type.upper()}
-📝 Sujet : {subject}
-
-═══════════════════════════════════════════════════
-💬 MESSAGE CLIENT
-═══════════════════════════════════════════════════
-{message_content}
-
-═══════════════════════════════════════════════════
-🔧 MÉTADONNÉES TECHNIQUES
-═══════════════════════════════════════════════════
-🕒 Reçu le : {datetime.now().strftime('%d/%m/%Y à %H:%M:%S')}
-🌐 IP : {request.remote_addr}
-💻 User-Agent : {request.headers.get('User-Agent', 'Non spécifié')[:100]}...
-🆔 Message ID : {contact_message.id if contact_message else 'Non sauvegardé'}
-
-═══════════════════════════════════════════════════
-🚀 ACTIONS RECOMMANDÉES
-═══════════════════════════════════════════════════
-Type: {project_type} {project_emoji}
-
-📋 RÉPONSE SUGGÉRÉE:
-{get_response_template(project_type)}
-
-⏱️ DÉLAI DE RÉPONSE RECOMMANDÉ:
-{get_response_urgency(project_type)}
-
-📊 ADMIN PANEL:
-https://wendogo.com/admin (onglet Messages contact)
-
----
-Envoyé automatiquement depuis wendogo.com
-Système de notification Wendogo v2.0
-"""
+            email_body = get_admin_notification_email(
+                name, email, subject, message_content, project_type, 
+                contact_message, request, locale
+            )
             
             mail = current_app.extensions['mail']
             # Envoyer l'email à l'équipe
@@ -300,14 +516,17 @@ Système de notification Wendogo v2.0
                 body=email_body
             )
             
-            #from app import mail
             current_app.logger.info(f"[DEBUG] Sender: {current_app.config['MAIL_DEFAULT_SENDER']}")
 
             mail.send(msg)
             
             # Email de confirmation personnalisé
-            confirmation_subject = "Votre message a bien été reçu - Wendogo 🎓"
-            confirmation_body = get_confirmation_email(name, subject, project_type, message_content)
+            if locale == 'en':
+                confirmation_subject = "Your message has been received - Wendogo 🎓"
+            else:
+                confirmation_subject = "Votre message a bien été reçu - Wendogo 🎓"
+                
+            confirmation_body = get_confirmation_email(name, subject, project_type, message_content, locale)
             
             confirmation_msg = Message(
                 subject=confirmation_subject,
@@ -320,9 +539,11 @@ Système de notification Wendogo v2.0
             
             current_app.logger.info(f"Contact emails sent successfully for {email}")
             
+            success_msg = 'Your message has been sent successfully! We will respond quickly.' if locale == 'en' else 'Votre message a été envoyé avec succès ! Nous vous répondrons rapidement.'
+            
             return jsonify({
                 'success': True,
-                'message': 'Votre message a été envoyé avec succès ! Nous vous répondrons rapidement.',
+                'message': success_msg,
                 'message_id': contact_message.id if contact_message else None
             }), 200
             
@@ -346,7 +567,6 @@ Système de notification Wendogo v2.0
             current_app.logger.info(f"MAIL config: {current_app.config.get('MAIL_DEFAULT_SENDER')}")
             mail = current_app.extensions['mail']
             # Test message simple
-            #from app import mail
             msg = Message(
                 subject="Test Wendogo",
                 sender=current_app.config['MAIL_DEFAULT_SENDER'],
@@ -415,7 +635,6 @@ Système de notification Wendogo v2.0
     def test_email_config():
         """Route de test pour vérifier la configuration email"""
         try:
-            #from app import mail
             mail = current_app.extensions['mail']
             msg = Message(
                 subject="✅ Test Configuration Email Wendogo",
